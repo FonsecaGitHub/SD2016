@@ -4,11 +4,7 @@ Grupo de SD 033 - Campus Alameda
 
 Henrique Caldeira 75838 henrique.cal94@gmail.com
 
-... ... ...
-
-... ... ...
-*(preencher com nome, número e email de membro do grupo e depois apagar esta linha)*
-
+Miguel Fonseca 67040 miguel.fonseca1011011@gmail.com
 
 Repositório:
 [tecnico-distsys/A_33-project](https://github.com/tecnico-distsys/A_33-project/)
