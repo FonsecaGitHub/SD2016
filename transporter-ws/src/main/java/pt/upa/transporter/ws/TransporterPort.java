@@ -7,8 +7,6 @@ import java.util.List;
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
 public class TransporterPort implements TransporterPortType {
 
-	// TODO
-
 	public void clearJobs(){
 	
 	}
