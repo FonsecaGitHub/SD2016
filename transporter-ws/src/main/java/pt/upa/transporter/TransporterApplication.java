@@ -13,8 +13,7 @@ import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
 //serviço
-//a classe que vinha vazia no projecto inicialmente
-import pt.upa.transporter.ws.TransporterPort; //implements TransporterPortType
+import pt.upa.transporter.ws.TransporterPort;
 
 /**
  * Transporter server application (main).
