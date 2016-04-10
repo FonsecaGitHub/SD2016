@@ -26,6 +26,6 @@ public class BrokerPort implements BrokerPortType {
 	}
 
 	public String ping(String name) {
-		return null;
+		return "<<< Pinged by \"" + name + "\"! >>>";	
 	}
 }
