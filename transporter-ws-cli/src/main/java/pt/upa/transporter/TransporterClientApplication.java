@@ -18,12 +18,12 @@ import java.util.Map;
 
 public class TransporterClientApplication {
 
-        private static final String UDDI_URL = "http://localhost:9090";
+    private static final String UDDI_URL = "http://localhost:9090";
 	private static final String WS_NAME = "UpaTransporter1";
 
 	public static void main(String[] args) throws Exception {
 		System.out.println("=======================================================================================");
-                System.out.println("========================== Starting up Transporter client... ==========================");
+        System.out.println("========================== Starting up Transporter client... ==========================");
                 
                 // Check arguments
 		if (args.length < 2) {
