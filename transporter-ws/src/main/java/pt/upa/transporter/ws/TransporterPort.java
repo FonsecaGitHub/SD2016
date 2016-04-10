@@ -34,7 +34,7 @@ public class TransporterPort implements TransporterPortType {
 	
         public String ping(String name){
         
-            return null;
+            return "<<< Pinged by \"" + name + "\"! >>>";
         }
 	
 }

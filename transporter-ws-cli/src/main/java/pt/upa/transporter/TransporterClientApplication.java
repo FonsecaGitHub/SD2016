@@ -27,7 +27,7 @@ public class TransporterClientApplication {
                 
                 // Check arguments
 		if (args.length < 2) {
-			System.err.println("Argument(s) missing!");
+			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
 			System.err.printf("Usage: java %s uddiURL name%n", TransporterClientApplication.class.getName());
 			return;
 		}
@@ -57,6 +57,9 @@ public class TransporterClientApplication {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
                 
+                
+                String result = port.ping("henrique");
+                System.out.println(result);
                 
                 System.out.println("=======================================================================================");
 	}

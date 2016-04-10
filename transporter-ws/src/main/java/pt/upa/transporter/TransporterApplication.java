@@ -30,9 +30,9 @@ public class TransporterApplication {
                 //N e um inteiro >= 1. Ou seja UpaTransporter1 vai para o porto 8081, UpaTransporter2 
                 //vai para 8082, etc..
                 //Por agora so existe o UpaTransporter1
-		if (args.length < 2) {
+		if (args.length < 3) {
 			System.err.println("Argument(s) missing!");
-			System.err.printf("Usage: java %s uddiURL name%n", TransporterApplication.class.getName());
+			System.err.printf("Usage: java %s uddiURL name url%n", TransporterApplication.class.getName());
 			return;
 		}
 		
