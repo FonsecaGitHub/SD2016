@@ -39,14 +39,14 @@ public class TransporterApplication {
 		System.out.println(TransporterApplication.class.getName() + " starting...");
 		
 		String uddiURL = args[0]; //http://localhost:9090
-		String name = args[1]; //UpaTransporter1 
-		String url = args[2]; //http://localhost:8081/transporter-ws/endpoint
+		String name = args[1]; //UpaTransporterN 
+		String url = args[2]; //http://localhost:808N/transporter-ws/endpoint
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
 
 		try {
-                        //criar endpoint com a class ..Port.java que vinha no proj inicialmente
+                        //criar endpoint com a classe 
 			endpoint = Endpoint.create(new TransporterPort());
 
  			// publish endpoint
