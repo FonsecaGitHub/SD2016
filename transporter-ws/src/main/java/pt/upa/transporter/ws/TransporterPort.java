@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class TransporterPort implements TransporterPortType {
         
         //Lista de jobs.
-        LinkedList<JobView> _jobs;
+        private LinkedList<JobView> _jobs;
 
         /**
          * Constructor.

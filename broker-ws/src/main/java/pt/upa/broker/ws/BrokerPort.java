@@ -4,7 +4,7 @@ import javax.jws.WebService;
 
 import java.util.List;
 
-@WebService(endpointInterface = "pt-upa.broker.ws.BrokerPortType")
+@WebService(endpointInterface = "pt.upa.broker.ws.BrokerPortType")
 public class BrokerPort implements BrokerPortType {
 
 	public void clearTransports() {

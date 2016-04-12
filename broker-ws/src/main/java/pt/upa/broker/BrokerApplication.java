@@ -1,5 +1,10 @@
 package pt.upa.broker;
 
+//pt.upa.transporter
+import pt.upa.transporter.TransporterClientApplication;
+
+//pt.upa.transporter.ws
+import pt.upa.transporter.ws.TransporterPortType;
 
 //java.util
 import java.util.Map;
@@ -8,7 +13,6 @@ import java.util.Map;
 import javax.xml.ws.Endpoint;
 import javax.xml.ws.BindingProvider;
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
-
 
 //uddi naming
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
@@ -29,7 +33,10 @@ public class BrokerApplication {
 			System.err.printf("Usage: java %s uddiURL wsName wsURL%n", BrokerApplication.class.getName());
 			return;
 		}
-
+                
+                System.out.println("=======================================================================================");
+                System.out.println("=========================== Starting up Broker server... ===========================");
+                
 		System.out.println(BrokerApplication.class.getSimpleName() + " starting...");
 
 		String uddiURL = args[0]; //http://localhost:9090
@@ -38,8 +45,11 @@ public class BrokerApplication {
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
+		TransporterPortType port = null;
 
 		try {
+                        port = TransporterClientApplication.connect();
+			
 			endpoint = Endpoint.create(new BrokerPort());
 
 			// publish endpoint
@@ -55,6 +65,7 @@ public class BrokerApplication {
 			System.out.println("Awaiting connections");
 			System.out.println("Press enter to shutdown");
 			System.in.read();
+			
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);

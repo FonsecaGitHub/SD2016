@@ -23,12 +23,12 @@
 
         <mainclass>pt.upa.broker.BrokerApplication</mainclass>
 		
-		 <!-- instance number - redefine using -D option - e.g. mvn -Dws.i=2 exec:java -->
+        <!-- instance number - redefine using -D option - e.g. mvn -Dws.i=2 exec:java -->
         <ws.i>1</ws.i>
 
         <ws.host>localhost</ws.host>
         <ws.port>808${ws.i}</ws.port>
-		<ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
+        <ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
 
         <ws.name>UpaBroker${ws.i}</ws.name>
         <uddi.url>http://localhost:9090</uddi.url>
@@ -60,6 +60,12 @@
             <groupId>pt.ulisboa.tecnico.sdis</groupId>
             <artifactId>uddi-naming</artifactId>
             <version>1.0</version>
+        </dependency>
+        <dependency>
+            <!-- cliente transporter -->
+            <groupId>pt.upa.a33</groupId>
+            <artifactId>transporter-ws-cli</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
