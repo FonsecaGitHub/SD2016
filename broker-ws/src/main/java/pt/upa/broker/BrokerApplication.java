@@ -37,20 +37,23 @@ public class BrokerApplication {
                 System.out.println("#######################################################################################");
                 System.out.println("############################ Starting up Broker server... #############################");
                 
-		System.out.println(BrokerApplication.class.getSimpleName() + " starting...");
+		System.out.println(BrokerApplication.class.getSimpleName() + " starting...\n");
 
 		String uddiURL = args[0]; //http://localhost:9090
-		String name = args[1]; //UpaBroker1
-		String url = args[2]; //http://localhost:8081/broker-ws/endpoint
+		String name = args[1]; //UpaBrokerN
+		String url = args[2]; //http://localhost:809N/broker-ws/endpoint
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
 		
 
 		try {
-                        TransporterClient[] client = TransporterClientApplication.getTransporterList();
+                        TransporterClient[] clients = TransporterClientApplication.getTransporterList();
 			
-			endpoint = Endpoint.create(new BrokerPort());
+			BrokerPort broker = new BrokerPort();
+			broker.setTransporters(clients);
+			
+			endpoint = Endpoint.create(broker);
 
 			// publish endpoint
 			System.out.printf("Starting %s%n", url);

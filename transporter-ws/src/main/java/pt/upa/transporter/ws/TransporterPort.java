@@ -42,7 +42,7 @@ public class TransporterPort implements TransporterPortType {
 	 * {@link TransporterPort#_jobs}
 	 */
 	public void clearJobs(){
-	
+            _jobs = new LinkedList<JobView>();
 	}
 	
 	/**
@@ -100,6 +100,8 @@ public class TransporterPort implements TransporterPortType {
 	public JobView requestJob(String origin, String destination, int price)
         throws BadLocationFault_Exception, BadPriceFault_Exception
 	{
+//             if()
+	
             return null;
 	}
 	

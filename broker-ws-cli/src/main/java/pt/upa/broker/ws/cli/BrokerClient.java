@@ -10,27 +10,36 @@ import pt.upa.broker.ws.UnknownLocationFault_Exception;
 
 import java.util.List;
 
-public class BrokerClient implements BrokerPortType {
+//NOTA: e suposto usar estas classes para chamar os metodos remotos.
+//usei os prototipos dos metodos como estao no BrokerPort, mas e suposto alterar isso.
+public class BrokerClient{
+
+        BrokerPortType _broker;
+        
+        public BrokerClient(BrokerPortType broker)
+        {
+            _broker = broker;
+        }
 
 	public void clearTransports() {
-
+            _broker.clearTransports();
 	}
 
 	public List<TransportView> listTransports() {
-		return null;
+		return _broker.listTransports();
 	}
 
-	public TransportView viewTransport(String id)
-		throws UnknownTransportFault_Exception {
-			return null;
+	public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
+                return _broker.viewTransport(id);
 	}
 
 	public String requestTransport(String origin, String destination, int price)
 		throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
-			return null;
+                
+                return _broker.requestTransport(origin, destination, price);
 	}
 
 	public String ping(String name) {
-		return null;
+		return _broker.ping(name);
 	}
 }

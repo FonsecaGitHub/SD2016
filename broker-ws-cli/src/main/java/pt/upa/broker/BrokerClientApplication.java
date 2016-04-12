@@ -22,11 +22,11 @@ public class BrokerClientApplication {
 	private static final String WS_NAME = "UpaBroker1";
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("=======================================================================================");
-        System.out.println("========================== Starting up Broker client... ==========================");
+            System.out.println("=======================================================================================");
+            System.out.println("========================== Starting up Broker client... ==========================");
 
-        //Check Arguments
-        if (args.length < 2) {
+                //Check Arguments
+                if (args.length < 2) {
 			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
 			System.err.printf("Usage: java %s uddiURL name%n", BrokerClientApplication.class.getName());
 			return;
@@ -57,8 +57,9 @@ public class BrokerClientApplication {
 		Map<String, Object> requestContext = bindingProvider.getRequestContext();
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 
-		String result = port.ping("miguel");
-        System.out.println(result);
+		BrokerClient client = new BrokerClient(port);
+		System.out.println(port.ping("asds"));
+
 		System.out.println("=======================================================================================");
 	}
 

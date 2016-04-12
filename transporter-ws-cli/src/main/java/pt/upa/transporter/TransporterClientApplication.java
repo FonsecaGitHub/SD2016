@@ -41,6 +41,7 @@ public class TransporterClientApplication {
 	
 	public static TransporterClient[] getTransporterList() throws Exception
 	{
+            System.out.println("=======================================================================================");
             System.out.println("======================= Fetching all available transporters... ========================");
                 
             // Check arguments
@@ -61,40 +62,50 @@ public class TransporterClientApplication {
             //Procura todos os transporters
             for(String name : TRANSPORTER_NAME_LIST)
             {
-                System.out.printf("--------------------------- Looking for '%s' ----------------------------%n", name);
                 String endpointAddress = uddiNaming.lookup(name);
                 
-                if (endpointAddress == null) {
-                    System.out.println("[UNKNOWN] Unable to get endpoint address of service\"" + name + "\" at \"" + uddiURL + "\"");
-                    System.out.println("[UNKNOWN] Moving on...");
-                } else {
-                    System.out.println("[SUCCESS] Found endpoint address \"" + endpointAddress + "\" for name \"" + name + "\".");
-                    
-                    System.out.println("--------> Creating stub ...");
+                if (endpointAddress != null) {
                     TransporterService service = new TransporterService();
                     TransporterPortType port = service.getTransporterPort();
-
-                    System.out.println("--------> Setting endpoint address ...");
+                    
                     BindingProvider bindingProvider = (BindingProvider) port;
                     Map<String, Object> requestContext = bindingProvider.getRequestContext();
                     requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
                     
                     clients_found.add(new TransporterClient(name, port));
-                    
-                    System.out.println("[SUCCESS] All done. Moving on...");
                 }
+                
+//                 if (endpointAddress == null) {
+//                     System.out.println("[UNKNOWN] Unable to get endpoint address of service\"" + name + "\" at \"" + uddiURL + "\"");
+//                     System.out.println("[UNKNOWN] Moving on...");
+//                 } else {
+//                     System.out.println("[SUCCESS] Found endpoint address \"" + endpointAddress + "\" for name \"" + name + "\".");
+//                     
+//                     System.out.println("--------> Creating stub ...");
+//                     TransporterService service = new TransporterService();
+//                     TransporterPortType port = service.getTransporterPort();
+// 
+//                     System.out.println("--------> Setting endpoint address ...");
+//                     BindingProvider bindingProvider = (BindingProvider) port;
+//                     Map<String, Object> requestContext = bindingProvider.getRequestContext();
+//                     requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
+//                     
+//                     clients_found.add(new TransporterClient(name, port));
+//                     
+//                     System.out.println("[SUCCESS] All done. Moving on...");
+//                 }
                 
                 
             }
                 
             System.out.println("=============================== Transporters ready. ===================================");
+            
                 
-                
-            System.out.println("=======================================================================================");
+            System.out.println("=======================================================================================\n");
             
             
             
-            //converter array list para array
+            //converter array list dos transportes para array
             result = new TransporterClient[clients_found.size()];
             result = clients_found.toArray(result);
             
