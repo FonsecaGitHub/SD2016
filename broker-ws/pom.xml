@@ -27,7 +27,7 @@
         <ws.i>1</ws.i>
 
         <ws.host>localhost</ws.host>
-        <ws.port>808${ws.i}</ws.port>
+        <ws.port>809${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
 
         <ws.name>UpaBroker${ws.i}</ws.name>

@@ -2,11 +2,32 @@ package pt.upa.broker.ws;
 
 import javax.jws.WebService;
 
+//pt.upa.transporter.ws
+import pt.upa.transporter.ws.cli.TransporterClient;
+
 import java.util.List;
+import java.util.LinkedList;
 
 @WebService(endpointInterface = "pt.upa.broker.ws.BrokerPortType")
 public class BrokerPort implements BrokerPortType {
 
+        List<TransporterClient> _transporters;
+        
+        public BrokerPort()
+        {
+            _transporters = new LinkedList<TransporterClient>();
+        }
+        //======= Metodos genericos. ==================================================
+        public void addTransporter()
+        {
+            
+        }
+        
+        
+
+        //==============================================================================
+	//======= Invocaçoes remotas ===================================================
+	
 	public void clearTransports() {
 
 	}

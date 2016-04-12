@@ -4,7 +4,7 @@ package pt.upa.broker;
 import pt.upa.transporter.TransporterClientApplication;
 
 //pt.upa.transporter.ws
-import pt.upa.transporter.ws.TransporterPortType;
+import pt.upa.transporter.ws.cli.TransporterClient;
 
 //java.util
 import java.util.Map;
@@ -34,21 +34,21 @@ public class BrokerApplication {
 			return;
 		}
                 
-                System.out.println("=======================================================================================");
-                System.out.println("=========================== Starting up Broker server... ===========================");
+                System.out.println("#######################################################################################");
+                System.out.println("############################ Starting up Broker server... #############################");
                 
 		System.out.println(BrokerApplication.class.getSimpleName() + " starting...");
 
 		String uddiURL = args[0]; //http://localhost:9090
-		String name = args[1]; //UPABroker1
+		String name = args[1]; //UpaBroker1
 		String url = args[2]; //http://localhost:8081/broker-ws/endpoint
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
-		TransporterPortType port = null;
+		
 
 		try {
-                        port = TransporterClientApplication.connect();
+                        TransporterClient[] client = TransporterClientApplication.getTransporterList();
 			
 			endpoint = Endpoint.create(new BrokerPort());
 
