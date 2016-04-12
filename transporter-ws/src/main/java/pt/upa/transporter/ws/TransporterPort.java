@@ -9,7 +9,12 @@ import java.util.ArrayList;
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
 public class TransporterPort implements TransporterPortType {
         
-        //Lista de jobs.
+        /**
+         * Used to store active jobs.
+         * Using a linked list makes element removal more efficient ( complexity O(1)).
+         * 
+         * @see java.util.LinkedList
+         */
         private LinkedList<JobView> _jobs;
 
         /**
@@ -31,12 +36,24 @@ public class TransporterPort implements TransporterPortType {
             _jobs.add(job);
         }
         
-        //limpar todos os jobs.
+        /**
+	 * Deletes all jobs.
+	 * 
+	 * {@link TransporterPort#_jobs}
+	 */
 	public void clearJobs(){
 	
 	}
 	
-	//Copia lista para ArrayList antes de enviar.
+	/**
+	 * Returns a list of all jobs stored.
+	 * 
+	 * {@link TransporterPort#_jobs}
+	 * @return colletion of JobView objects representing all active jobs.
+	 *     @see pt.upa.transporter.ws.JobView
+	 *     @see java.util.ArrayList
+	 * 
+	 */
 	public List<JobView> listJobs(){
             List<JobView> list = new ArrayList<JobView>();
             list.addAll(_jobs);
@@ -44,23 +61,54 @@ public class TransporterPort implements TransporterPortType {
             return list;
 	}
 	
-	//retornar status do job
+	/**
+	 * Returns the general information about a job.
+	 * 
+	 * @param id identifier of job.
+	 * @return element of JobView enum.
+	 *     @see pt.upa.transporter.ws.JobView
+	 */
 	public JobView jobStatus(String id){
             
             return null;
 	}
 	
+	/**
+	 * [Insert description here]
+	 * 
+	 * @param id identifier of job.
+	 * @param accept
+	 * @return JobView object.
+	 *     @see pt.upa.transporter.ws.JobView
+	 */
 	public JobView decideJob(String id,boolean accept) throws BadJobFault_Exception
 	{
             return null;
 	}
 	
+	/**
+	 * [Insert description here]
+	 * 
+	 * @param origin text description of the origin of job.
+	 * @param destination text description of the destination of job. 
+	 * @return JobView object of the job.
+	 *     @see pt.upa.transporter.ws.JobView
+	 *     
+	 * @throws pt.upa.transporter.ws.BadJobFault_Exception
+	 * @throws pt.upa.transporter.ws.BadPriceFault_Exception
+	 */
 	public JobView requestJob(String origin, String destination, int price)
         throws BadLocationFault_Exception, BadPriceFault_Exception
 	{
             return null;
 	}
 	
+	/**
+	 * Basic operation to check if server is responsive.
+	 * 
+	 * @param name name of the sender.
+	 * @return string containing the server response.
+	 */
         public String ping(String name){
         
             return "<<< Pinged by \"" + name + "\"! >>>";
