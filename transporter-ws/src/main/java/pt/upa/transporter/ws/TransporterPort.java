@@ -5,6 +5,7 @@ import javax.jws.WebService;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
 public class TransporterPort implements TransporterPortType {
@@ -65,6 +66,16 @@ public class TransporterPort implements TransporterPortType {
         private int[] _jobIdStatusList;
         
         /**
+         *  Prefix that is added to jobIdentifier attributes.
+         *  I.e. for UpaTransporter2, this is "T2".
+         *  
+         *  Job identifiers will look like "T2-32".
+         *  The first half (plus the dash) is this prefix, i.e "T2-". 
+         *  The second half is the unique identifier.
+         */
+        private final String _transporterIdPrefix; 
+        
+        /**
          *  Name assigned to this transporter.
          *  UpaTransporter1, UpaTransporter2, etc...
          */
@@ -92,6 +103,8 @@ public class TransporterPort implements TransporterPortType {
             _transporterNumber = Character.getNumericValue(number);
             
             System.out.println("Number: " + _transporterNumber + " of transport " + _transporterName);
+            
+            _transporterIdPrefix = "T" + _transporterNumber + "-";
             
             //valores de exemplo
             JobView job = new JobView();
@@ -161,19 +174,61 @@ public class TransporterPort implements TransporterPortType {
 	}
 	
 	/**
-	 * [Insert description here]
+	 * Receives a job proposal and responds with an offer.
 	 * 
 	 * @param origin text description of the origin of job.
 	 * @param destination text description of the destination of job. 
 	 * @return JobView object of the job.
 	 *     @see pt.upa.transporter.ws.JobView
 	 *     
-	 * @throws pt.upa.transporter.ws.BadJobFault_Exception
+	 * @throws pt.upa.transporter.ws.BadLocationFault_Exception
 	 * @throws pt.upa.transporter.ws.BadPriceFault_Exception
 	 */
 	public JobView requestJob(String origin, String destination, int price)
         throws BadLocationFault_Exception, BadPriceFault_Exception
 	{
+            if(!locationExists(origin))
+            {
+                BadLocationFault fault = new BadLocationFault();
+                fault.setLocation(origin);
+                    
+                throw new BadLocationFault_Exception("Unknown origin location.", fault);
+            }
+            
+            if(!locationExists(destination))
+            {
+                BadLocationFault fault = new BadLocationFault();
+                fault.setLocation(destination);
+                    
+                throw new BadLocationFault_Exception("Unknown destination location.", fault);
+            }
+            
+            if(price < 0)
+            {
+                BadPriceFault fault = new BadPriceFault();
+                fault.setPrice(price);
+            
+                throw new BadPriceFault_Exception("Price below zero.", fault);
+            }
+                
+                
+            //Check if transporter operates in region of origin and destination
+            if(!transporterOperatesInLocation(origin))
+            {
+                BadLocationFault fault = new BadLocationFault();
+                fault.setLocation(origin);
+                    
+                throw new BadLocationFault_Exception("Transporter \"" + _transporterName + "\" does not operate in given origin location.", fault);
+            }
+            
+            if(!transporterOperatesInLocation(destination))
+            {
+                BadLocationFault fault = new BadLocationFault();
+                fault.setLocation(destination);
+                    
+                throw new BadLocationFault_Exception("Transporter \"" + _transporterName + "\" does not operate in given destination location.", fault);
+            }
+            
             //FIXME:check price>10 && price<100
             
             if(_transporterNumber % 2 == 0)
@@ -218,7 +273,7 @@ public class TransporterPort implements TransporterPortType {
         /**
          *  Creates a new job and adds it to the list of active jobs.
          */
-        private void createJob(String company_name, String origin, String destination, int price)
+        private JobView createJob(String company_name, String origin, String destination, int price)
         {  
            JobView new_job = new JobView();
            
@@ -234,6 +289,7 @@ public class TransporterPort implements TransporterPortType {
            //set state to the initial one.
            new_job.setJobState(getJobState(JOB_STATUS_LIST[0]));
            
+           return new_job;
         }
         
         /**
@@ -270,6 +326,65 @@ public class TransporterPort implements TransporterPortType {
         private JobStateView getJobState(String state_name)
         {
             return JobStateView.fromValue(state_name);
+        }
+        
+        /**
+         *  Checks whether a location is known or not.
+         *  
+         *  @return true if location is known, false otherwise.
+         */
+        private boolean locationExists(String location)
+        {
+            boolean result = true;
+        
+            if(!Arrays.asList(LOCATIONS_NORTH_REGION).contains(location))
+            {
+                if(!Arrays.asList(LOCATIONS_CENTER_REGION).contains(location))
+                {
+                    if(!Arrays.asList(LOCATIONS_SOUTH_REGION).contains(location))
+                    {
+                        result = false;
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        /**
+         *  Checks whether this transporter operates in given location.
+         *  
+         *  @return True if transporter does operate in the location. False otherwise.
+         */
+        private boolean transporterOperatesInLocation(String location)
+        {
+            boolean result = true;
+        
+            //case transporter number is even (par)
+            if(_transporterNumber % 2 == 0)
+            {  
+                if(!Arrays.asList(LOCATIONS_NORTH_REGION).contains(location))
+                {
+                    if(!Arrays.asList(LOCATIONS_CENTER_REGION).contains(location))
+                    {
+                        result = false;
+                    }
+                }
+            }
+            //case transporter number is odd (impar)
+            else
+            {
+                if(!Arrays.asList(LOCATIONS_CENTER_REGION).contains(location))
+                {
+                    if(!Arrays.asList(LOCATIONS_SOUTH_REGION).contains(location))
+                    {
+                        result = false;
+                    }
+                } 
+                
+            }
+            
+            return result;
         }
         
 	
