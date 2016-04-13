@@ -46,8 +46,10 @@ public class TransporterApplication {
 		UDDINaming uddiNaming = null;
 
 		try {
+                        TransporterPort port = new TransporterPort(name);
+		
                         //criar endpoint com a classe 
-			endpoint = Endpoint.create(new TransporterPort());
+			endpoint = Endpoint.create(port);
 
  			// publish endpoint
 			System.out.printf("Starting %s%n", url);
