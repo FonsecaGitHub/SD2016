@@ -75,25 +75,6 @@ public class TransporterClientApplication {
                     clients_found.add(new TransporterClient(name, port));
                 }
                 
-//                 if (endpointAddress == null) {
-//                     System.out.println("[UNKNOWN] Unable to get endpoint address of service\"" + name + "\" at \"" + uddiURL + "\"");
-//                     System.out.println("[UNKNOWN] Moving on...");
-//                 } else {
-//                     System.out.println("[SUCCESS] Found endpoint address \"" + endpointAddress + "\" for name \"" + name + "\".");
-//                     
-//                     System.out.println("--------> Creating stub ...");
-//                     TransporterService service = new TransporterService();
-//                     TransporterPortType port = service.getTransporterPort();
-// 
-//                     System.out.println("--------> Setting endpoint address ...");
-//                     BindingProvider bindingProvider = (BindingProvider) port;
-//                     Map<String, Object> requestContext = bindingProvider.getRequestContext();
-//                     requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
-//                     
-//                     clients_found.add(new TransporterClient(name, port));
-//                     
-//                     System.out.println("[SUCCESS] All done. Moving on...");
-//                 }
                 
                 
             }

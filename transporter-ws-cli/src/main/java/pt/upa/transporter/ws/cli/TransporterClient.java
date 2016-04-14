@@ -48,12 +48,43 @@ public class TransporterClient
 	{
             return null;
 	}
-	
-        public JobView requestJob(String origin, String destination, int price) throws BadLocationFault_Exception, BadPriceFault_Exception
+
+	/**
+	 * Requests transport from the transporter.
+	 * 
+	 * @return the price proposed by the transporter. 
+	 */
+        public int requestJob(String origin, String destination, int price) 
 	{
-//             if()
-	
-            return null;
+            
+            JobView proposal;
+            int proposed_price;
+            
+            try {
+                proposal = _port.requestJob(origin, destination, price);
+                
+                if(proposal == null)
+                    //proposta rejeitada
+                    proposed_price = -1;
+                else
+                {
+                    proposed_price = proposal.getJobPrice();
+                }
+                
+                return proposed_price;
+            }
+            catch(BadLocationFault_Exception excep)
+            {
+                //nao existe transporte
+                return -2;
+            }
+            catch(BadPriceFault_Exception excep)
+            {
+                //preço menor que zero
+                return -3;
+            }
+            
+            
 	}
 
 }
