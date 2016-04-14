@@ -15,6 +15,9 @@ import pt.upa.transporter.ws.cli.TransporterClient;
 @WebService(endpointInterface = "pt.upa.broker.ws.BrokerPortType")
 public class BrokerPort implements BrokerPortType {        
         
+        private static final int BAD_LOCATION_FAULT_VALUE = -2;
+        private static final int BAD_PRICE_FAULT_VALUE = -3;
+        
         private static final String[] LOCATIONS_NORTH_REGION =  { "Porto",
                                                                   "Braga",
                                                                   "Viana do Castelo",
@@ -144,9 +147,19 @@ public class BrokerPort implements BrokerPortType {
 		int[] proposed_prices = new int[num_transporters];
 		int index;
 		
+		//pede orçamentos aos transporters
 		for(index = 0; index < num_transporters; index++)
 		{
                         proposed_prices[index] = _transporters.get(index).requestJob(origin,destination,price);
+                        
+                        if(proposed_prices[index] == BAD_LOCATION_FAULT_VALUE)
+                        {
+                            UnavailableTransportFault fault = new UnavailableTransportFault();
+                            fault.setOrigin(origin);
+                            fault.setDestination(destination);
+                        
+                            throw new UnavailableTransportFault_Exception("",fault);
+                        }
 		}
 		
 		int lowest_price = Integer.MAX_VALUE;
