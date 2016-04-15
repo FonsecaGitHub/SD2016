@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-2016-04-14 19:47:43.750 GMT:
- Booting Derby version The Apache Software Foundation - Apache Derby - 10.4.2.0 - (689064): instance a816c00e-0154-1650-9ec6-00003acc2f30
+2016-04-15 20:13:49.391 GMT:
+ Booting Derby version The Apache Software Foundation - Apache Derby - 10.4.2.0 - (689064): instance a816c00e-0154-1b8e-deac-00003ab71f30
 on database directory /home/henrical/Documents/SD/A_33-project/transporter-ws-cli/target/juddi-derby-test-db  
 
 Database Class Loader started - derby.database.classpath=''

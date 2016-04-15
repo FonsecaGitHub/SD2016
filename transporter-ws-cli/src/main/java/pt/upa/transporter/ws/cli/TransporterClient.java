@@ -2,6 +2,8 @@ package pt.upa.transporter.ws.cli;
 
 import java.util.List;
 
+import java.lang.StringBuilder;
+
 import pt.upa.transporter.ws.TransporterPortType;
 import pt.upa.transporter.ws.JobView;
 import pt.upa.transporter.ws.BadJobFault_Exception;
@@ -53,8 +55,9 @@ public class TransporterClient
 	 * Requests transport from the transporter.
 	 * 
 	 * @return the price proposed by the transporter. 
+	 * @param proposed_job_identifier will be altered to contain the id of the job
 	 */
-        public int requestJob(String origin, String destination, int price, String proposed_job_identifier) 
+        public int requestJob(String origin, String destination, int price, StringBuilder proposed_job_identifier) 
 	{
             
             JobView proposal;
@@ -71,7 +74,7 @@ public class TransporterClient
                 }
                 else
                 {
-                    proposed_job_identifier = proposal.getJobIdentifier();
+                    proposed_job_identifier.append(proposal.getJobIdentifier());
                     
                     proposed_price = proposal.getJobPrice();
                 }

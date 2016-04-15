@@ -18,23 +18,31 @@ import java.util.Map;
 
 public class BrokerClientApplication {
 
-	private static final String UDDI_URL = "http://localhost:9090";
-	private static final String WS_NAME = "UpaBroker1";
-
+        private static final String UDDI_URL = "http://localhost:9090";
+        private static final String WS_NAME = "UpaBroker1";
+        
 	public static void main(String[] args) throws Exception {
-            System.out.println("=======================================================================================");
-            System.out.println("========================== Starting up Broker client... ==========================");
-
                 //Check Arguments
-                if (args.length < 2) {
-			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
-			System.err.printf("Usage: java %s uddiURL name%n", BrokerClientApplication.class.getName());
-			return;
-		}
+//                 if (args.length < 2) {
+// 			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
+// 			System.err.printf("Usage: java %s uddiURL name%n", BrokerClientApplication.class.getName());
+// 			return;
+// 		}
+		
+		BrokerClient client = getBrokerClient();
 
-		String uddiURL = args[0];
-		String name = args[1];
-
+		System.out.println(client.requestTransport("Guarda","Viseu", 49));
+		
+	}
+	
+	public static BrokerClient getBrokerClient() throws Exception
+	{
+                System.out.println("=======================================================================================");
+                System.out.println("========================== Starting up Broker client... ==========================");
+	
+                String uddiURL = UDDI_URL; 
+                String name = WS_NAME;
+	
 		System.out.printf("Contacting UDDI at %s%n", uddiURL);
 		UDDINaming uddiNaming = new UDDINaming(uddiURL);
 
@@ -43,7 +51,7 @@ public class BrokerClientApplication {
 
 		if (endpointAddress == null) {
 			System.out.println("Unable to get endpoint address of service\"" + name + "\" at \"" + uddiURL + "\"");
-			return;
+			return null;
 		} else {
 			System.out.println("Found endpoint address \"" + endpointAddress + "\" for name \"" + name + "\".");
 		}
@@ -58,9 +66,11 @@ public class BrokerClientApplication {
 		requestContext.put(ENDPOINT_ADDRESS_PROPERTY, endpointAddress);
 
 		BrokerClient client = new BrokerClient(port);
-		System.out.println(port.ping("asds"));
-
+// 		System.out.println(client.ping("asds"));
+		
 		System.out.println("=======================================================================================");
+                
+                return client;
 	}
 
 }

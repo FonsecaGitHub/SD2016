@@ -7,6 +7,10 @@ import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
+import java.util.HashMap;
+import java.util.Map;
+
+import java.lang.StringBuilder;
 
 import pt.upa.transporter.ws.JobView;
 //pt.upa.transporter.ws
@@ -57,11 +61,8 @@ public class BrokerPort implements BrokerPortType {
         
         public BrokerPort()
         {
-            _transporters = new LinkedList<TransporterClient>();              
-        }
-        
-        public void populate() {
-        	
+            _transporters = new LinkedList<TransporterClient>(); 
+            _transports = new LinkedList<TransportView>();
         }
         
         //======= Local public methods ==================================================
@@ -142,16 +143,20 @@ public class BrokerPort implements BrokerPortType {
 		int num_transporters = _transporters.size();
 		
 		int[] proposed_prices = new int[num_transporters];
+		String[] proposed_identifiers = new String[num_transporters];
 		int transporter;
 		
 		//pede orçamentos aos transporters
-		for(transporter = 0; index < num_transporters; index++)
+		for(transporter = 0; transporter < num_transporters; transporter++)
 		{
-                        String proposal_job_id = null;
+                        StringBuilder proposal_job_id = new StringBuilder();
 		
                         proposed_prices[transporter] = _transporters.get(transporter).requestJob(origin,destination,price, proposal_job_id);
+                        proposed_identifiers[transporter] = proposal_job_id.toString();
                         
-                        if(proposed_prices[trasporter] == BAD_LOCATION_FAULT_VALUE)
+//                         System.out.println(proposal_job_id.toString());
+                        
+                        if(proposed_prices[transporter] == BAD_LOCATION_FAULT_VALUE)
                         {
                             UnavailableTransportFault fault = new UnavailableTransportFault();
                             fault.setOrigin(origin);
@@ -162,17 +167,24 @@ public class BrokerPort implements BrokerPortType {
                         
                         if(proposed_prices[transporter] > 0)
                         {
-                            createRequestedTransport(origin,destination, price, proposal_job_id);
+                            createRequestedTransport(origin,destination, price, proposal_job_id.toString());
                         }
                         
 		}
 		
 		int lowest_price = Integer.MAX_VALUE;
+		int lowest_price_index = 0;
 		
-		for(int prop_price : proposed_prices)
-                {                
-                    if(prop_price < lowest_price)
-                        lowest_price = prop_price;
+		for(int i=0; i<proposed_prices.length; i++ )
+                {         
+                    if(proposed_prices[i] == 0)
+                        continue;
+                
+                    if(proposed_prices[i] < lowest_price && proposed_prices[i] > 0)
+                    {
+                        lowest_price = proposed_prices[i];
+                        lowest_price_index = i;
+                    }
                 }
                 
                 if(lowest_price > price)
@@ -182,7 +194,30 @@ public class BrokerPort implements BrokerPortType {
                 
                     throw new UnavailableTransportPriceFault_Exception("All offers received have prices above limit.", fault);
                 }
-		
+                
+                 System.out.println("============================================================================");
+                StringBuilder builder = new StringBuilder();
+                
+                for(int i = 0; i < proposed_prices.length; i++)
+                {
+                    builder.append(proposed_prices[i] + "\n");
+                }
+               
+                System.out.println("Responding to request with max price = " + price + ". Prices returned are:");
+                System.out.println(builder.toString());
+                
+                builder = new StringBuilder();
+                
+                for(int i = 0; i < proposed_identifiers.length; i++)
+                {
+                    builder.append(proposed_identifiers[i] + "\n");
+                }
+                
+                System.out.println("With identifiers:");
+                System.out.println(builder.toString());
+                System.out.println("============================================================================");
+                
+                return proposed_identifiers[lowest_price_index];
 // 		int num_bad_location_errors = 0;
 // 		for(int i : proposed_prices)
 // 		{
@@ -200,7 +235,6 @@ public class BrokerPort implements BrokerPortType {
 // 				throw new UnavailableTransportFault_Exception(destination, null);
 // 			}
 // 		}
-		return "Transport Requested - " + "Origin: " + origin + "; Destination" + destination + "; Price: " + price;
 	}
 			
 		

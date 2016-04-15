@@ -23,7 +23,6 @@ import java.util.Collection;
 
 public class TransporterClientApplication {
 
-	private static final String WS_NAME = "UpaTransporter2";
 	private static final String UDDI_URL = "http://localhost:9090";
 	private static final String[] TRANSPORTER_NAME_LIST = { "UpaTransporter1",
                                                                 "UpaTransporter2",

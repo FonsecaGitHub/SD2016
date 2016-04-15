@@ -231,7 +231,7 @@ public class TransporterPort implements TransporterPortType {
             
             if(price<10)
             {
-                proposed_price = proposed_price * 0.7f;
+                proposed_price = proposed_price * 0.6f;
             }
             else if(price > 100)
             {
@@ -239,26 +239,33 @@ public class TransporterPort implements TransporterPortType {
             }
             else
             {
+                //transporter PAR
                 if(_transporterNumber % 2 == 0)
                 {
+                    //preço IMPAR
                     if(price % 2 != 0)
                     {
                         //retorna preco acima do dado
                         proposed_price += proposed_price * 0.3f;
                     }
+                    //preço PAR
                     else
                     {
                         //retorn preço abaixo do dado
-                        proposed_price = proposed_price * 0.7f;
+                        proposed_price = proposed_price * 0.6f;
                     }
             
-                } else
+                }
+                //transporter IMPAR
+                else
                 {
+                    //preço IMPAR
                     if(price % 2 != 0)
                     {
                         //retorna preco abaixo do dado
-                        proposed_price = proposed_price * 0.7f;
+                        proposed_price = proposed_price * 0.6f;
                     }
+                    //preço PAR
                     else
                     {
                         //retorna preco acima do dado
@@ -270,7 +277,10 @@ public class TransporterPort implements TransporterPortType {
             
             JobView proposed_job = createProposedJob(origin, destination, Math.round(proposed_price));
             
-	
+            System.out.println("============================================================================");
+            System.out.println("Received job request. Returning job id \"" + proposed_job.getJobIdentifier() + "\".");
+            System.out.println("============================================================================");
+            
             return proposed_job;
 	}
 	
@@ -320,7 +330,7 @@ public class TransporterPort implements TransporterPortType {
             int i;
             int result = 0;
             
-            for(i = 0 ; i<_jobIdList.length; i++)
+            for(i = 1 ; i<_jobIdList.length; i++)
             {
                 if(_jobIdList[i] == ID_AVAILABLE)
                 {
