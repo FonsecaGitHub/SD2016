@@ -41,14 +41,38 @@ public class TransporterClient
             return null;
 	}
 	
-	public JobView jobStatus(String id){
+	public String jobStatus(String id){
             
-            return null;
+            JobView requested_job = _port.jobStatus(id);
+            
+            if(requested_job == null)
+                return null;
+            
+            return requested_job.getJobState().value();
 	}
 	
-	public JobView decideJob(String id,boolean accept) throws BadJobFault_Exception
+	
+	public int decideJob(String id,boolean accept)
 	{
-            return null;
+            JobView job_response = null;
+	
+            try {
+                job_response = _port.decideJob(id,accept);
+            } 
+            catch(BadJobFault_Exception excep)
+            {
+                return -1;
+            }
+            
+            if(job_response.getJobState().value().equals("ACCEPTED"))
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+            
 	}
 
 	/**

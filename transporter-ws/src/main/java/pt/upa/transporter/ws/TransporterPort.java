@@ -155,7 +155,15 @@ public class TransporterPort implements TransporterPortType {
 	 */
 	public JobView jobStatus(String id){
             
-            return null;
+            JobView result = null; 
+            
+            for(JobView job : _jobs)
+            {
+                if(job.getJobIdentifier().equals(id))
+                    result = job;
+            }
+            
+            return result;
 	}
 	
 	/**
@@ -168,6 +176,34 @@ public class TransporterPort implements TransporterPortType {
 	 */
 	public JobView decideJob(String id, boolean accept) throws BadJobFault_Exception
 	{
+            boolean found_job_with_id = false;
+            JobView deciding_job = null;
+            
+            for(JobView job : _jobs)
+            {
+                if(job.getJobIdentifier().equals(id))
+                {
+                    found_job_with_id = true;
+                    deciding_job = job;
+                }
+            }
+	
+            if(!found_job_with_id)
+            {
+                BadJobFault fault = new BadJobFault();
+                fault.setId(id);
+            
+                throw new BadJobFault_Exception("Unable to find job with given id.", fault);
+            }
+            
+            if(accept)
+            {
+                //set job state to accepted
+                deciding_job.setJobState(getJobState(JOB_STATUS_LIST[2]));
+            
+                return deciding_job;
+            }   
+	
             return null;
 	}
 	
@@ -278,7 +314,7 @@ public class TransporterPort implements TransporterPortType {
             JobView proposed_job = createProposedJob(origin, destination, Math.round(proposed_price));
             
             System.out.println("============================================================================");
-            System.out.println("Received job request. Returning job id \"" + proposed_job.getJobIdentifier() + "\".");
+            System.out.println("Received job request. Returning job id \"" + proposed_job.getJobIdentifier() + "\" with proposed price " + Math.round(proposed_price) + ".");
             System.out.println("============================================================================");
             
             return proposed_job;

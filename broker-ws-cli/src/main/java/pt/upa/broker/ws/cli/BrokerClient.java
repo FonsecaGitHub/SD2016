@@ -30,7 +30,8 @@ public class BrokerClient{
 	}
 
 	public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
-                return _broker.viewTransport(id);
+                
+               return _broker.viewTransport(id);
 	}
 
 	public String requestTransport(String origin, String destination, int price)

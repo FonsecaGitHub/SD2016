@@ -105,19 +105,49 @@ public class BrokerPort implements BrokerPortType {
 	}
 
 	public List<TransportView> listTransports() {
-		return null;
+            List<TransportView> list = new ArrayList<TransportView>();
+            list.addAll(_transports);
+		
+            return list;
 	}
 
         // Devolve o estado actual do Transport id
 	public TransportView viewTransport(String id)
 		throws UnknownTransportFault_Exception {
 
-		for(TransportView transport : _transports) {
-			if(transport.getId().equals(id)) {
-				System.out.println("Transport: " + transport.getId() + " is in state: " + transport.getState());
-				return transport;
-			}
-		}
+// 		for(TransportView transport : _transports) {
+// 			if(transport.getId().equals(id)) {
+// 				System.out.println("Transport: " + transport.getId() + " is in state: " + transport.getState());
+// 				return transport;
+// 			}
+// 		}
+            
+                String updated_state = null;
+                boolean found_job = false;
+                
+                for(TransporterClient client : _transporters)
+                {
+                    updated_state = client.jobStatus(id);
+                    if(updated_state != null)
+                    {
+                        found_job = true;
+                        break;
+                    }
+                }
+                
+                if(!found_job)
+                {
+                    UnknownTransportFault fault = new UnknownTransportFault();
+                    fault.setId(id);
+                
+                    throw new UnknownTransportFault_Exception("Transport with given ID was not found.", fault);
+                }
+                
+                TransportView result = null;
+                
+//                 for)
+
+                
 		return null;
 	}
 
@@ -202,7 +232,7 @@ public class BrokerPort implements BrokerPortType {
                     throw new UnavailableTransportPriceFault_Exception("All offers received have prices above limit.", fault);
                 }
                 
-                 System.out.println("============================================================================");
+                System.out.println("============================================================================");
                 StringBuilder builder = new StringBuilder();
                 
                 for(int i = 0; i < proposed_prices.length; i++)
@@ -224,24 +254,15 @@ public class BrokerPort implements BrokerPortType {
                 System.out.println(builder.toString());
                 System.out.println("============================================================================");
                 
-                return proposed_identifiers[lowest_price_index];
-// 		int num_bad_location_errors = 0;
-// 		for(int i : proposed_prices)
-// 		{
+                TransporterClient lowest_price_transporter = _transporters.get(lowest_price_index);
+                
+//                 if(lowest_price_transporter.decideJob(proposed_identifiers[lowest_price_index], true))
+//                 {
 //                     
-// 		}
-		
-// 		for(TransportView transport : _transports) {
-// 			if(transport.getOrigin().equals(origin) && transport.getDestination().equals(destination)) {
-// 				if(transport.getPrice() <= price) {
-// 					//TODO Adiciona o servico?
-// 				} else {
-// 					throw new UnavailableTransportPriceFault_Exception(destination, null); 
-// 				}
-// 			} else { 	
-// 				throw new UnavailableTransportFault_Exception(destination, null);
-// 			}
-// 		}
+//                 }
+                
+                return proposed_identifiers[lowest_price_index];
+
 	}
 			
 		
@@ -263,6 +284,22 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setId(id);
             
             new_transport.setState(getTransportState(TRANSPORT_STATUS_LIST[0]));
+            
+            _transports.add(new_transport);
+            
+            return new_transport;
+	}
+	
+	private TransportView createBudgetedTransport(String origin, String destination, int price, String id)
+	{
+            TransportView new_transport = new TransportView();
+            new_transport.setOrigin(origin);
+            new_transport.setDestination(destination);
+            
+            new_transport.setPrice(price);
+            new_transport.setId(id);
+            
+            new_transport.setState(getTransportState(TRANSPORT_STATUS_LIST[1]));
             
             _transports.add(new_transport);
             
@@ -304,6 +341,54 @@ public class BrokerPort implements BrokerPortType {
             }
             
             return result;
+        }
+        
+        /**
+         *  Returns name of transporter who set up a certain transport.
+         *  If job identifier is "T1-N", then it was "UpaTransporter1" that set up the transport.
+         */
+        private String getTransporterNameFromJobId(String job_id)
+        {
+            String[] id_split = job_id.split("-");
+            
+            if(id_split[0].equals("T1"))
+            {
+                return "UpaTransporter1";
+            }
+            else if(id_split[0].equals("T2"))
+            {
+                return "UpaTransporter2";
+            }
+            else if(id_split[0].equals("T3"))
+            {
+                return "UpaTransporter3";
+            }
+            else if(id_split[0].equals("T4"))
+            {
+                return "UpaTransporter4";
+            }
+            else if(id_split[0].equals("T5"))
+            {
+                return "UpaTransporter5";
+            }
+            else if(id_split[0].equals("T6"))
+            {
+                return "UpaTransporter6";
+            }
+            else if(id_split[0].equals("T7"))
+            {
+                return "UpaTransporter7";
+            }
+            else if(id_split[0].equals("T8"))
+            {
+                return "UpaTransporter8";
+            }
+            else if(id_split[0].equals("T9"))
+            {
+                return "UpaTransporter2";
+            }
+            
+            return null;
         }
         
 
