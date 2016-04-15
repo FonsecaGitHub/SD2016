@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 public class ViewTransportTest extends BrokerPortTest {
 
     // static members
-
+	private static final String UNKNOWN_TRANSPORT = "blebleble";
 
     // one-time initialization and clean-up
 
@@ -34,10 +34,12 @@ public class ViewTransportTest extends BrokerPortTest {
 
     @Before
     public void setUp() {
+    	server = super.populateTest();
     }
 
     @After
     public void tearDown() {
+    	server = null;
     }
 
 

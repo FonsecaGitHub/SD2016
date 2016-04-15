@@ -15,6 +15,10 @@ public class RequestTransportTest extends BrokerPortTest {
 	private static final int INVALID_PRICE = -5;
 	private static final String UNKNOWN_ORIGIN = "Rapture";
 	private static final String UNKNOWN_DESTINATION = "RaccoonCity";
+	
+	private static final int VALID_PRICE = 5;
+	private static final String KNOWN_ORIGIN = "Lisboa";
+	private static final String KNOWN_DESTINATION = "Guarda";
 
     // one-time initialization and clean-up
 
@@ -41,16 +45,31 @@ public class RequestTransportTest extends BrokerPortTest {
 
     @After
     public void tearDown() {
+    	server = null;
     }
 
 
     // tests
 
     @Test
-    public void test() {
-
-        // assertEquals(expected, actual);
-        // if the assert fails, the test fails
+    public void sucess() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception { 
+    	server.requestTransport( KNOWN_ORIGIN, KNOWN_DESTINATION, VALID_PRICE);
     }
+    
+    @Test(expected = UnknownLocationFault_Exception.class)
+    public void originDoesNotExist() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	server.requestTransport(UNKNOWN_ORIGIN, KNOWN_DESTINATION, VALID_PRICE);
+    }
+    
+    @Test(expected = UnknownLocationFault_Exception.class)
+    public void destinationDoesNotExist() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	server.requestTransport(KNOWN_ORIGIN, UNKNOWN_DESTINATION, VALID_PRICE);
+    }
+    
+    @Test(expected = InvalidPriceFault_Exception.class)
+    public void invalidPrice() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	server.requestTransport(KNOWN_ORIGIN, KNOWN_DESTINATION, INVALID_PRICE);
+    }
+    
 
 }
