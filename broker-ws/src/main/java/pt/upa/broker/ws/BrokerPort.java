@@ -111,7 +111,14 @@ public class BrokerPort implements BrokerPortType {
         // Devolve o estado actual do Transport id
 	public TransportView viewTransport(String id)
 		throws UnknownTransportFault_Exception {
-			return null;
+
+		for(TransportView transport : _transports) {
+			if(transport.getId().equals(id)) {
+				System.out.println("Transport: " + transport.getId() + " is in state: " + transport.getState());
+				return transport;
+			}
+		}
+		return null;
 	}
 
         // Tenta marcar um transporte de uma origem para um destido, com um preco maximo maior que 0
