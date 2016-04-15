@@ -60,6 +60,10 @@ public class BrokerPort implements BrokerPortType {
             _transporters = new LinkedList<TransporterClient>();              
         }
         
+        public void populate() {
+        	
+        }
+        
         //======= Local public methods ==================================================
        
        public void setTransporters(TransporterClient[] transporters)

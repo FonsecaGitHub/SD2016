@@ -12,7 +12,9 @@ import static org.junit.Assert.*;
 public class RequestTransportTest {
 
     // static members
-
+	private static final int INVALID_PRICE = -5;
+	private static final String UNKNOWN_ORIGIN = "Rapture";
+	private static final String UNKNOWN_DESTINATION = "RaccoonCity";
 
     // one-time initialization and clean-up
 
@@ -34,6 +36,7 @@ public class RequestTransportTest {
 
     @Before
     public void setUp() {
+    	//server = super.populate4Test();
     }
 
     @After
