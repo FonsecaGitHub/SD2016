@@ -71,5 +71,14 @@ public class RequestTransportTest extends BrokerPortTest {
     	server.requestTransport(KNOWN_ORIGIN, KNOWN_DESTINATION, INVALID_PRICE);
     }
     
+    @Test(expected = UnknownLocationFault_Exception.class)
+    public void nullOrigin() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	server.requestTransport(null, KNOWN_DESTINATION, VALID_PRICE);
+    }
+    
+    @Test(expected = UnknownLocationFault_Exception.class)
+    public void nullDestination() throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+    	server.requestTransport(KNOWN_ORIGIN, null, VALID_PRICE);
+    }    
 
 }

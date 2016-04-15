@@ -13,6 +13,9 @@ public class ViewTransportTest extends BrokerPortTest {
 
     // static members
 	private static final String UNKNOWN_TRANSPORT = "blebleble";
+	
+	//TODO verificar se o transporte e valido
+	private static final String KNOWN_TRANSPORT = "1";
 
     // one-time initialization and clean-up
 
@@ -46,10 +49,18 @@ public class ViewTransportTest extends BrokerPortTest {
     // tests
 
     @Test
-    public void test() {
-
-        // assertEquals(expected, actual);
-        // if the assert fails, the test fails
+    public void sucess() throws UnknownTransportFault_Exception {
+    	server.viewTransport(KNOWN_TRANSPORT);
     }
+    
+    @Test(expected = UnknownTransportFault_Exception.class)
+    public void unknownTransport() throws UnknownTransportFault_Exception {
+    	server.viewTransport(UNKNOWN_TRANSPORT);
+    }
+    
+    @Test(expected = UnknownTransportFault_Exception.class)
+    public void nullTransport() throws UnknownTransportFault_Exception {
+    	server.viewTransport(null);
+    } 
 
 }
