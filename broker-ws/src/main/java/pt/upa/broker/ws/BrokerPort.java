@@ -18,6 +18,15 @@ public class BrokerPort implements BrokerPortType {
         private static final int BAD_LOCATION_FAULT_VALUE = -2;
         private static final int BAD_PRICE_FAULT_VALUE = -3;
         
+        private static final String[] TRANSPORT_STATUS_LIST = { "REQUESTED",
+                                                                "BUDGETED",
+                                                                "FAILED",
+                                                                "BOOKED",
+                                                                "HEADING",
+                                                                "ONGOING",
+                                                                "COMPLETED"
+                                                                };
+                                                                
         private static final String[] LOCATIONS_NORTH_REGION =  { "Porto",
                                                                   "Braga",
                                                                   "Viana do Castelo",
@@ -40,21 +49,6 @@ public class BrokerPort implements BrokerPortType {
                                                                   "Faro"
                                                                 };
         
-        private static final int BASE_ID_ARRAY_SIZE = 1024;
-        
-        /**
-         *  These values are used to fill the job ID status list.
-         *      @see BrokerPort#_jobIdList
-         */
-        private static final int ID_TAKEN = 1;
-        private static final int ID_AVAILABLE = 0;
-        
-        /**
-         *  Array used to check if an id is taken or not.
-         *  The index of each position is the ID.
-         *  If a position is taken, the ID is in use and can't be assigned to a new job.
-         */
-        private int[] _jobIdList;
         
         /** */
         private List<TransporterClient> _transporters;
@@ -64,7 +58,6 @@ public class BrokerPort implements BrokerPortType {
         public BrokerPort()
         {
             _transporters = new LinkedList<TransporterClient>();              
-            _jobIdList = new int[BASE_ID_ARRAY_SIZE];
         }
         
         //======= Local public methods ==================================================
@@ -145,14 +138,16 @@ public class BrokerPort implements BrokerPortType {
 		int num_transporters = _transporters.size();
 		
 		int[] proposed_prices = new int[num_transporters];
-		int index;
+		int transporter;
 		
 		//pede orçamentos aos transporters
-		for(index = 0; index < num_transporters; index++)
+		for(transporter = 0; index < num_transporters; index++)
 		{
-                        proposed_prices[index] = _transporters.get(index).requestJob(origin,destination,price);
+                        String proposal_job_id = null;
+		
+                        proposed_prices[transporter] = _transporters.get(transporter).requestJob(origin,destination,price, proposal_job_id);
                         
-                        if(proposed_prices[index] == BAD_LOCATION_FAULT_VALUE)
+                        if(proposed_prices[trasporter] == BAD_LOCATION_FAULT_VALUE)
                         {
                             UnavailableTransportFault fault = new UnavailableTransportFault();
                             fault.setOrigin(origin);
@@ -160,6 +155,12 @@ public class BrokerPort implements BrokerPortType {
                         
                             throw new UnavailableTransportFault_Exception("",fault);
                         }
+                        
+                        if(proposed_prices[transporter] > 0)
+                        {
+                            createRequestedTransport(origin,destination, price, proposal_job_id);
+                        }
+                        
 		}
 		
 		int lowest_price = Integer.MAX_VALUE;
@@ -207,6 +208,36 @@ public class BrokerPort implements BrokerPortType {
 	
 	// ========== Local private methods ========================================================
 	
+	private TransportView createRequestedTransport(String origin, String destination, int price, String id)
+	{
+            TransportView new_transport = new TransportView();
+            new_transport.setOrigin(origin);
+            new_transport.setDestination(destination);
+            
+            new_transport.setPrice(price);
+            new_transport.setId(id);
+            
+            new_transport.setState(getTransportState(TRANSPORT_STATUS_LIST[0]));
+            
+            _transports.add(new_transport);
+            
+            return new_transport;
+	}
+	
+	/**
+         *  Retrieves job state enumerator value.
+         *  
+         *  @param state_name name of the enumerator element.
+         *  @return corresponding JobStateView enumerator element.
+         *  
+         *  Possible names are stored in a static array.
+         *  @see TransporterPort#JOB_STATUS_LIST
+         */
+        private TransportStateView getTransportState(String state_name)
+        {
+            return TransportStateView.fromValue(state_name);
+        }
+	
 	/**
          *  Checks whether a location is known or not.
          *  
@@ -230,28 +261,5 @@ public class BrokerPort implements BrokerPortType {
             return result;
         }
         
-        /**
-         *  Generate a new ID to assign a job.
-         * 
-         *  @return an available ID.
-         */
-        private int generateId()
-        {
-            int i;
-            int result = 0;
-            
-            for(i = 0 ; i<_jobIdList.length; i++)
-            {
-                if(_jobIdList[i] == ID_AVAILABLE)
-                {
-                    result = i;
-                    break;
-                }
-            }
-            
-            //this id is now taken
-            _jobIdList[i] = ID_TAKEN;
-            
-            return result;
-        }
+
 }

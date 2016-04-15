@@ -42,6 +42,21 @@ public class TransporterPort implements TransporterPortType {
                                                         "COMPLETED"
                                                        };
         
+        private static final int BASE_ID_ARRAY_SIZE = 1024;
+        
+        /**
+         *  These values are used to fill the job ID status list.
+         *      @see BrokerPort#_jobIdList
+         */
+        private static final int ID_TAKEN = 1;
+        private static final int ID_AVAILABLE = 0;
+        
+        /**
+         *  Array used to check if an id is taken or not.
+         *  The index of each position is the ID.
+         *  If a position is taken, the ID is in use and can't be assigned to a new job.
+         */
+        private int[] _jobIdList;
         
         /**
          * Used to store active jobs.
@@ -63,6 +78,18 @@ public class TransporterPort implements TransporterPortType {
          */
         private int _transporterNumber;
         
+        /**
+         *  Prefix that is added to jobIdentifier attributes.
+         *  I.e. for UpaTransporter2, this is "T2".
+         *  
+         *  Job identifiers will look like "T2-32".
+         *  The first half (plus the dash) is this prefix, i.e "T2-". 
+         *  The second half is the unique identifier of the job.
+         *  
+         *  This is done so the broker can have a unique identifier for each job, for each transporter.
+         */
+        private final String _transporterIdPrefix; 
+        
         // === LOCAL PUBLIC METHODS ==========================================================================
         /**
          * Constructor.
@@ -70,6 +97,7 @@ public class TransporterPort implements TransporterPortType {
         public TransporterPort(String transporter_name)
         {
             _jobs = new LinkedList<JobView>();
+            _jobIdList = new int[BASE_ID_ARRAY_SIZE];
             
             _transporterName = transporter_name;
             
@@ -77,9 +105,11 @@ public class TransporterPort implements TransporterPortType {
             char number = _transporterName.charAt(_transporterName.length() - 1);
             _transporterNumber = Character.getNumericValue(number);
             
-            System.out.println("Number: " + _transporterNumber + " of transport " + _transporterName);
+            _transporterIdPrefix = "T" + _transporterNumber + "-";
             
-        }
+            System.out.println("Number: " + _transporterNumber + " of transport " + _transporterName);
+            System.out.println("This transporter has prefix: " + _transporterIdPrefix);
+            }
         
          
 
@@ -93,6 +123,7 @@ public class TransporterPort implements TransporterPortType {
 	 */
 	public void clearJobs(){
             _jobs = new LinkedList<JobView>();
+            _jobIdList = new int[BASE_ID_ARRAY_SIZE];
 	}
 	
 	/**
@@ -264,8 +295,9 @@ public class TransporterPort implements TransporterPortType {
            new_job.setJobDestination(destination);
            new_job.setJobPrice(price);
            
-           new_job.setJobIdentifier("");
-           
+           int new_id = generateId();
+           new_job.setJobIdentifier(_transporterIdPrefix + Integer.toString(new_id));
+
            //set state to the initial one.
            new_job.setJobState(getJobState(JOB_STATUS_LIST[0]));
            
@@ -274,9 +306,33 @@ public class TransporterPort implements TransporterPortType {
            return new_job;
         }
         
+        /**
+         *  Generate a new ID to assign a job.
+         * 
+         *  @return an available ID.
+         */
+        private int generateId()
+        {
+            int i;
+            int result = 0;
+            
+            for(i = 0 ; i<_jobIdList.length; i++)
+            {
+                if(_jobIdList[i] == ID_AVAILABLE)
+                {
+                    result = i;
+                    break;
+                }
+            }
+            
+            //this id is now taken
+            _jobIdList[i] = ID_TAKEN;
+            
+            return result;
+        }
         
         /**
-         *  Retrieves enumerator value.
+         *  Retrieves job state enumerator value.
          *  
          *  @param state_name name of the enumerator element.
          *  @return corresponding JobStateView enumerator element.
@@ -346,6 +402,37 @@ public class TransporterPort implements TransporterPortType {
             }
             
             return result;
+        }
+        
+        /**
+         *  Receives a job identifier and retrives the last digits.
+         *  "T2-33" -> 33
+         *  
+         *  @param line a string containing a job id.
+         *  @return an integer value for the last digits
+         */
+        private static int getTrailingInt(String line)
+        {
+            int offset = line.length();
+            for (int i = line.length() - 1; i >= 0; i--)
+            {
+                char c = line.charAt(i);
+                if (Character.isDigit(c))
+                {
+                    offset--;
+                }
+                else
+                {
+                    if (offset == line.length())
+                    {
+                        // No int at the end
+                        return Integer.MIN_VALUE;
+                    }
+                return Integer.parseInt(line.substring(offset));
+                }
+            }
+            
+            return Integer.parseInt(line.substring(offset));
         }
         
 	

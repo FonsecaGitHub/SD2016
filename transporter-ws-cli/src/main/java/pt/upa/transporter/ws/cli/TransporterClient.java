@@ -54,7 +54,7 @@ public class TransporterClient
 	 * 
 	 * @return the price proposed by the transporter. 
 	 */
-        public int requestJob(String origin, String destination, int price) 
+        public int requestJob(String origin, String destination, int price, String proposed_job_identifier) 
 	{
             
             JobView proposal;
@@ -64,10 +64,15 @@ public class TransporterClient
                 proposal = _port.requestJob(origin, destination, price);
                 
                 if(proposal == null)
+                {  
                     //proposta rejeitada
                     proposed_price = -1;
+                    return proposed_price;
+                }
                 else
                 {
+                    proposed_job_identifier = proposal.getJobIdentifier();
+                    
                     proposed_price = proposal.getJobPrice();
                 }
                 
