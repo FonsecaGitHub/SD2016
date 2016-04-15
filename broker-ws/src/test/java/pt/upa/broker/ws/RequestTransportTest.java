@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
  *  Invoked by Maven in the "test" life-cycle phase
  *  If necessary, should invoke "mock" remote servers 
  */
-public class RequestTransportTest {
+public class RequestTransportTest extends BrokerPortTest {
 
     // static members
 	private static final int INVALID_PRICE = -5;
@@ -36,7 +36,7 @@ public class RequestTransportTest {
 
     @Before
     public void setUp() {
-    	//server = super.populate4Test();
+    	server = super.populateTest();
     }
 
     @After
