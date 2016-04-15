@@ -90,6 +90,10 @@ public class TransporterPort implements TransporterPortType {
          */
         private final String _transporterIdPrefix; 
         
+        public void populate() {
+        	//TODO add stuff here
+        }
+        
         // === LOCAL PUBLIC METHODS ==========================================================================
         /**
          * Constructor.
@@ -162,7 +166,7 @@ public class TransporterPort implements TransporterPortType {
 	 * @return JobView object.
 	 *     @see pt.upa.transporter.ws.JobView
 	 */
-	public JobView decideJob(String id,boolean accept) throws BadJobFault_Exception
+	public JobView decideJob(String id, boolean accept) throws BadJobFault_Exception
 	{
             return null;
 	}
