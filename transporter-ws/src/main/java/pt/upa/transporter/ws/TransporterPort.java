@@ -170,22 +170,28 @@ public class TransporterPort implements TransporterPortType {
 	 * [Insert description here]
 	 * 
 	 * @param id identifier of job.
-	 * @param accept
-	 * @return JobView object.
+	 * @param accept is true if the client has accepted the proposal.
+	 *        If he has, set job state to ACCEPTED. If he has rejected it, set job state to REJECTED.
+	 *        
+	 * @return JobView object representing the job with the new state (accepted, rejected).
 	 *     @see pt.upa.transporter.ws.JobView
 	 */
 	public JobView decideJob(String id, boolean accept) throws BadJobFault_Exception
 	{
-            boolean found_job_with_id = false;
-            JobView deciding_job = null;
+            boolean found_job_with_id = false; //set true if job is found
+            JobView deciding_job = null; 
+            int found_job_index = 0; //index of the job, if it is found.
             
             for(JobView job : _jobs)
             {
-                if(job.getJobIdentifier().equals(id))
+                if(job.getJobIdentifier().equals(id) && job.getJobState() == getJobState("PROPOSED"))
                 {
                     found_job_with_id = true;
                     deciding_job = job;
+                    break;
                 }
+                
+                found_job_index++;
             }
 	
             if(!found_job_with_id)
@@ -200,11 +206,27 @@ public class TransporterPort implements TransporterPortType {
             {
                 //set job state to accepted
                 deciding_job.setJobState(getJobState(JOB_STATUS_LIST[2]));
+                _jobs.set(found_job_index, deciding_job); //replace old job with the new one
+            
+                System.out.println("============================================================================");
+                System.out.println("Received job decision request. Returning job with state \"" + _jobs.get(found_job_index).getJobState().name() + "\".");
+                System.out.println("============================================================================");
             
                 return deciding_job;
             }   
-	
-            return null;
+            else
+            {
+                //set job state to rejected
+                deciding_job.setJobState(getJobState(JOB_STATUS_LIST[1]));
+                _jobs.set(found_job_index, deciding_job); //replace old job with the new one
+            
+                System.out.println("============================================================================");
+                System.out.println("Received job decision request. Returning job with state \"" + _jobs.get(found_job_index).getJobState().name() + "\".");
+                System.out.println("============================================================================");
+            
+                return deciding_job;
+            }
+
 	}
 	
 	/**
@@ -265,7 +287,7 @@ public class TransporterPort implements TransporterPortType {
             
             float proposed_price = (float)price; 
             
-            if(price<10)
+            if(price<=10)
             {
                 proposed_price = proposed_price * 0.6f;
             }
