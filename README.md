@@ -17,26 +17,33 @@ Repositório:
 ### Ambiente
 
 [0] Iniciar sistema operativo
-Linux
+
+Indicar Windows ou Linux
+*(escolher um dos dois, que esteja disponível nos laboratórios, e depois apagar esta linha)*
+
 
 [1] Iniciar servidores de apoio
 
 JUDDI:
-(O juddi nao esta no repositorio, o que fazer aqui?)
+```
+...
+```
 
 
 [2] Criar pasta temporária
-...
-mkdir proj
-cd proj
-...
+
+```
+cd ...
+mkdir ...
+```
+
 
 [3] Obter código fonte do projeto (versão entregue)
 
 ```
-git clone 
+git clone ... 
 ```
-(Nao sei fazer isto, mas a release esta aqui https://github.com/tecnico-distsys/A_33-project/releases/tag/1 )
+*(colocar aqui comandos git para obter a versão entregue a partir da tag e depois apagar esta linha)*
 
 
 [4] Instalar módulos de bibliotecas auxiliares
@@ -59,7 +66,7 @@ mvn clean install
 [1] Construir e executar **servidor**
 
 ```
-cd transporter-ws
+cd ...-ws
 mvn clean install
 mvn exec:java
 ```
@@ -67,7 +74,7 @@ mvn exec:java
 [2] Construir **cliente** e executar testes
 
 ```
-cd transporter-ws-cli
+cd ...-ws-cli
 mvn clean install
 ```
 
@@ -81,7 +88,7 @@ mvn clean install
 [1] Construir e executar **servidor**
 
 ```
-cd broker-ws
+cd ...-ws
 mvn clean install
 mvn exec:java
 ```
@@ -90,7 +97,7 @@ mvn exec:java
 [2] Construir **cliente** e executar testes
 
 ```
-cd broker-ws-cli
+cd ...-ws-cli
 mvn clean install
 ```
 
@@ -98,3 +105,4 @@ mvn clean install
 
 -------------------------------------------------------------------------------
 **FIM**
+
