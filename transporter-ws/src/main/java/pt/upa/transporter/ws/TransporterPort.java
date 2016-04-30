@@ -2,10 +2,14 @@ package pt.upa.transporter.ws;
 
 import javax.jws.WebService;
 
+import pt.upa.transporter.JobStateChangeSchedule;
+
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import java.util.Random;
 
 import java.lang.Math;
 
@@ -42,17 +46,20 @@ public class TransporterPort implements TransporterPortType {
                                                         "COMPLETED"
                                                        };
         
+        //Maximum number of IDs that can be assigned to jobs. 
+        //In other words, the maximum number oj jobs for a single transporter.
         private static final int BASE_ID_ARRAY_SIZE = 1024;
         
         /**
          *  These values are used to fill the job ID status list.
-         *      @see BrokerPort#_jobIdList
+         *      @see TransporterPort#_jobIdList
          */
         private static final int ID_TAKEN = 1;
         private static final int ID_AVAILABLE = 0;
         
+        //==================================== INSTANCE ATTRIBUTES ===========================================
         /**
-         *  Array used to check if an id is taken or not.
+         *  Array used to check if an ID is taken or not.
          *  The index of each position is the ID.
          *  If a position is taken, the ID is in use and can't be assigned to a new job.
          */
@@ -90,11 +97,11 @@ public class TransporterPort implements TransporterPortType {
          */
         private final String _transporterIdPrefix; 
         
+        //==================================== LOCAL PUBLIC METHODS ===========================================
         public void populate() {
         	//TODO add stuff here
         }
         
-        // === LOCAL PUBLIC METHODS ==========================================================================
         /**
          * Constructor.
          */
@@ -123,7 +130,6 @@ public class TransporterPort implements TransporterPortType {
         /**
 	 * Deletes all jobs.
 	 * 
-	 * {@link TransporterPort#_jobs}
 	 */
 	public void clearJobs(){
             _jobs = new LinkedList<JobView>();
@@ -133,10 +139,8 @@ public class TransporterPort implements TransporterPortType {
 	/**
 	 * Returns a list of all jobs stored.
 	 * 
-	 * @see TransporterPort#_jobs
 	 * @return colletion of JobView objects representing all active jobs.
 	 *     @see pt.upa.transporter.ws.JobView
-	 *     @see java.util.ArrayList
 	 * 
 	 */
 	public List<JobView> listJobs(){
@@ -167,9 +171,10 @@ public class TransporterPort implements TransporterPortType {
 	}
 	
 	/**
-	 * [Insert description here]
+	 * Receives the clients decision for a proposed job. 
+	 * If he accepted, then set job state to that one. 
 	 * 
-	 * @param id identifier of job.
+	 * @param id identifier of the job.
 	 * @param accept is true if the client has accepted the proposal.
 	 *        If he has, set job state to ACCEPTED. If he has rejected it, set job state to REJECTED.
 	 *        
@@ -205,19 +210,17 @@ public class TransporterPort implements TransporterPortType {
             if(accept)
             {
                 //set job state to accepted
-                deciding_job.setJobState(getJobState(JOB_STATUS_LIST[2]));
+                deciding_job.setJobState(getJobState("ACCEPTED"));
                 _jobs.set(found_job_index, deciding_job); //replace old job with the new one
             
                 System.out.println("============================================================================");
                 System.out.println("Received job decision request. Returning job with state \"" + _jobs.get(found_job_index).getJobState().name() + "\".");
-                System.out.println("============================================================================");
-            
-                return deciding_job;
+                System.out.println("----------------------------------------------------------------------------");
             }   
             else
             {
                 //set job state to rejected
-                deciding_job.setJobState(getJobState(JOB_STATUS_LIST[1]));
+                deciding_job.setJobState(getJobState("REJECTED"));
                 _jobs.set(found_job_index, deciding_job); //replace old job with the new one
             
                 System.out.println("============================================================================");
@@ -227,6 +230,20 @@ public class TransporterPort implements TransporterPortType {
                 return deciding_job;
             }
 
+            //if job was accepted by client we must now define timers for each state transition
+            //i.e ACCEPTED -> HEADING, HEADING -> ONGOING, etc..
+            System.out.println("Setting timers for state transitions...");
+            
+            JobStateChangeSchedule schedule = new JobStateChangeSchedule();
+            
+            System.out.println("Generated delays:");
+            System.out.println("ACCEPTED to HEADING: " + schedule.getAcceptedToHeadingDelay());
+            System.out.println("HEADING to ONGOING: " + schedule.getHeadingToOngoingDelay());
+            System.out.println("ONGOING to COMPLETED: " + schedule.getOngoingToCompletedDelay());
+            
+            System.out.println("============================================================================");
+            
+            return deciding_job;
 	}
 	
 	/**
@@ -371,7 +388,7 @@ public class TransporterPort implements TransporterPortType {
            new_job.setJobIdentifier(_transporterIdPrefix + Integer.toString(new_id));
 
            //set state to the initial one.
-           new_job.setJobState(getJobState(JOB_STATUS_LIST[0]));
+           new_job.setJobState(getJobState("PROPOSED"));
            
            _jobs.add(new_job);
            

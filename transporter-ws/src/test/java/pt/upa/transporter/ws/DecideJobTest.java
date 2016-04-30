@@ -49,10 +49,10 @@ public class DecideJobTest extends TransporterPortTest {
 
     // tests
 
-    @Test
-    public void sucess() throws BadJobFault_Exception {
-    	server.decideJob(VALID_JOB_ID, true);
-    }
+//     @Test
+//     public void sucess() throws BadJobFault_Exception {
+//     	server.decideJob(VALID_JOB_ID, true);
+//     }
     
     @Test(expected = BadJobFault_Exception.class)
     public void invalidJobId() throws BadJobFault_Exception {
