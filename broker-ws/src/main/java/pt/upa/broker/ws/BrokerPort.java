@@ -67,6 +67,11 @@ public class BrokerPort implements BrokerPortType {
         
         //======= Local public methods ==================================================
        
+       public void populate()
+       {
+       
+       }
+       
        public void setTransporters(TransporterClient[] transporters)
         {
             _transporters = new LinkedList<TransporterClient>();
@@ -193,27 +198,47 @@ public class BrokerPort implements BrokerPortType {
                         
 //                         System.out.println(proposal_job_id.toString());
                         
-                        if(proposed_prices[transporter] == BAD_LOCATION_FAULT_VALUE)
-                        {
-                            UnavailableTransportFault fault = new UnavailableTransportFault();
-                            fault.setOrigin(origin);
-                            fault.setDestination(destination);
+//                         if(proposed_prices[transporter] == BAD_LOCATION_FAULT_VALUE)
+//                         {
+//                             UnavailableTransportFault fault = new UnavailableTransportFault();
+//                             fault.setOrigin(origin);
+//                             fault.setDestination(destination);
+//                         
+//                             throw new UnavailableTransportFault_Exception("",fault);
+//                         }
                         
-                            throw new UnavailableTransportFault_Exception("",fault);
-                        }
-                        
-                        if(proposed_prices[transporter] > 0)
-                        {
-                            createRequestedTransport(origin,destination, price, proposal_job_id.toString());
-                        }
+//                         if(proposed_prices[transporter] > 0)
+//                         {
+//                             createRequestedTransport(origin,destination, price, proposal_job_id.toString());
+//                         }
                         
 		}
+		
+		if(allProposalsRejected(proposed_prices))
+		{
+                    UnavailableTransportFault fault = new UnavailableTransportFault();
+                    fault.setOrigin(origin);
+                    fault.setDestination(destination);
+                        
+                    System.out.println("============================================================================");
+                    System.out.println("Rejected request for transport between \"" + origin + "\" and \"" + destination + "\".");
+                    System.out.println("All transporters have rejected the offer with price limit " + price + ".");
+                    for(int i = 0; i < proposed_prices.length; i++)
+                    {
+                        System.out.println(proposed_prices[i]);
+                    }
+                    System.out.println("============================================================================");    
+                    
+                    throw new UnavailableTransportFault_Exception("All transporters rejected request.",fault);
+		}
+		
 		
 		int lowest_price = Integer.MAX_VALUE;
 		int lowest_price_index = 0;
 		
 		for(int i=0; i<proposed_prices.length; i++ )
-                {         
+                {     
+                
                     if(proposed_prices[i] == 0)
                         continue;
                 
@@ -228,6 +253,15 @@ public class BrokerPort implements BrokerPortType {
                 {
                     UnavailableTransportPriceFault fault = new UnavailableTransportPriceFault();
                     fault.setBestPriceFound(lowest_price);
+                    
+                    System.out.println("============================================================================");
+                    System.out.println("Rejected request for transport between \"" + origin + "\" and \"" + destination + "\".");
+                    System.out.println("All offers received have prices above limit (" + price + ").");
+                    for(int i = 0; i < proposed_prices.length; i++)
+                    {
+                        System.out.println(proposed_prices[i]);
+                    }
+                    System.out.println("============================================================================");
                 
                     throw new UnavailableTransportPriceFault_Exception("All offers received have prices above limit.", fault);
                 }
@@ -237,9 +271,18 @@ public class BrokerPort implements BrokerPortType {
                 
                 for(int i = 0; i < proposed_prices.length; i++)
                 {
-                    builder.append(proposed_prices[i] + "\n");
+                    builder.append(proposed_prices[i]);
+                    if(proposed_prices[i] == -1)
+                        builder.append(" (transporter rejected price above 100)");
+                    else if(proposed_prices[i] == -2)
+                        builder.append(" (does no operate in location)");
+                    else if(proposed_prices[i] == -3)
+                        builder.append(" (transporter rejected price below zero)");
+                    
+                    builder.append("\n");
                 }
                
+                System.out.println("Received request for transport between \"" + origin + "\" and \"" + destination + "\".");
                 System.out.println("Responding to request with max price = " + price + ". Prices returned are:");
                 System.out.println(builder.toString());
                 
@@ -256,10 +299,12 @@ public class BrokerPort implements BrokerPortType {
                 
                 TransporterClient lowest_price_transporter = _transporters.get(lowest_price_index);
                 
-//                 if(lowest_price_transporter.decideJob(proposed_identifiers[lowest_price_index], true))
-//                 {
-//                     
-//                 }
+                int transporter_response = lowest_price_transporter.decideJob(proposed_identifiers[lowest_price_index], true);
+                
+                if(transporter_response == 0)
+                {
+                    createBookedTransport(origin, destination, price, proposed_identifiers[lowest_price_index]);
+                }
                 
                 return proposed_identifiers[lowest_price_index];
 
@@ -274,6 +319,22 @@ public class BrokerPort implements BrokerPortType {
 	
 	// ========== Local private methods ========================================================
 	
+	/**
+	 * Check if all transporters reject requests.
+	 * Note: rejected requests have proposed prices below 0.
+	 */
+	private boolean allProposalsRejected(int[] prices)
+	{    
+            for(int price : prices)
+            {
+                if(price >= 0)
+                    return false;
+            }
+            
+            return true;
+            
+	}
+	
 	private TransportView createRequestedTransport(String origin, String destination, int price, String id)
 	{
             TransportView new_transport = new TransportView();
@@ -283,9 +344,19 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setPrice(price);
             new_transport.setId(id);
             
-            new_transport.setState(getTransportState(TRANSPORT_STATUS_LIST[0]));
+            new_transport.setState(getTransportState("REQUESTED"));
             
-            _transports.add(new_transport);
+            int existing_transport_index = getIndexOfTransportWithIdentifier(id);
+            
+            if(existing_transport_index != -1)
+            {
+                _transports.add(new_transport);
+            }
+            else
+            {
+                _transports.set(existing_transport_index, new_transport);
+            }
+            
             
             return new_transport;
 	}
@@ -299,9 +370,43 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setPrice(price);
             new_transport.setId(id);
             
-            new_transport.setState(getTransportState(TRANSPORT_STATUS_LIST[1]));
+            new_transport.setState(getTransportState("BUDGETED"));
             
-            _transports.add(new_transport);
+            int existing_transport_index = getIndexOfTransportWithIdentifier(id);
+            
+            if(existing_transport_index != -1)
+            {
+                _transports.add(new_transport);
+            }
+            else
+            {
+                _transports.set(existing_transport_index, new_transport);
+            }
+            
+            return new_transport;
+	}
+	
+	private TransportView createBookedTransport(String origin, String destination, int price, String id)
+	{
+            TransportView new_transport = new TransportView();
+            new_transport.setOrigin(origin);
+            new_transport.setDestination(destination);
+            
+            new_transport.setPrice(price);
+            new_transport.setId(id);
+            
+            new_transport.setState(getTransportState("BOOKED"));
+            
+            int existing_transport_index = getIndexOfTransportWithIdentifier(id);
+            
+            if(existing_transport_index != -1)
+            {
+                _transports.add(new_transport);
+            }
+            else
+            {
+                _transports.set(existing_transport_index, new_transport);
+            }
             
             return new_transport;
 	}
@@ -392,4 +497,19 @@ public class BrokerPort implements BrokerPortType {
         }
         
 
+        private int getIndexOfTransportWithIdentifier(String id)
+        {
+            int index = 0;
+        
+            for(TransportView transport : _transports)
+            {
+                if(transport.getId().equals(id))
+                {
+                    return index;
+                }
+            }
+            
+            return -1;
+        }
+        
 }

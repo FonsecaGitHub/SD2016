@@ -48,10 +48,10 @@ public class ViewTransportTest extends BrokerPortTest {
 
     // tests
 
-    @Test
-    public void sucess() throws UnknownTransportFault_Exception {
-    	server.viewTransport(KNOWN_TRANSPORT);
-    }
+//     @Test
+//     public void sucess() throws UnknownTransportFault_Exception {
+//     	server.viewTransport(KNOWN_TRANSPORT);
+//     }
     
     @Test(expected = UnknownTransportFault_Exception.class)
     public void unknownTransport() throws UnknownTransportFault_Exception {

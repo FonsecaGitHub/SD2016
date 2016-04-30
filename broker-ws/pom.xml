@@ -30,7 +30,7 @@
         <ws.port>809${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
 
-        <ws.name>UpaBroker${ws.i}</ws.name>
+        <ws.name>UpaBroker</ws.name>
         <uddi.url>http://localhost:9090</uddi.url>
     </properties>
 
