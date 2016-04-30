@@ -176,7 +176,26 @@ public class TransporterPort implements TransporterPortType {
             for(JobView job : _jobs)
             {
                 if(job.getJobIdentifier().equals(id))
+                {
+                    
+                    
+                    if(_schedules.containsKey(job))
+                    {
+                        JobStateChangeSchedule job_schedule = _schedules.get(job);
+                        
+                        String job_updated_state_name = job_schedule.getCurrentState();
+                    
+                        System.out.println("**********************************************************************");
+                        System.out.println("Received job state request for job \"" + job.getJobIdentifier() + "\": returning state \"" + job_updated_state_name + "\".");
+                        System.out.println("**********************************************************************");
+                        JobStateView job_updated_state = stringToJobState(job_updated_state_name);
+                    
+                        job.setJobState(job_updated_state);
+                    
+                    }
+                    
                     result = job;
+                }
             }
             
             return result;
@@ -201,7 +220,7 @@ public class TransporterPort implements TransporterPortType {
             
             for(JobView job : _jobs)
             {
-                if(job.getJobIdentifier().equals(id) && job.getJobState() == getJobState("PROPOSED"))
+                if(job.getJobIdentifier().equals(id) && job.getJobState() == stringToJobState("PROPOSED"))
                 {
                     found_job_with_id = true;
                     deciding_job = job;
@@ -222,7 +241,7 @@ public class TransporterPort implements TransporterPortType {
             if(accept)
             {
                 //set job state to accepted
-                deciding_job.setJobState(getJobState("ACCEPTED"));
+                deciding_job.setJobState(stringToJobState("ACCEPTED"));
                 _jobs.set(found_job_index, deciding_job); //replace old job with the new one
             
                 System.out.println("============================================================================");
@@ -232,7 +251,7 @@ public class TransporterPort implements TransporterPortType {
             else
             {
                 //set job state to rejected
-                deciding_job.setJobState(getJobState("REJECTED"));
+                deciding_job.setJobState(stringToJobState("REJECTED"));
                 _jobs.set(found_job_index, deciding_job); //replace old job with the new one
             
                 System.out.println("============================================================================");
@@ -401,7 +420,7 @@ public class TransporterPort implements TransporterPortType {
            new_job.setJobIdentifier(_transporterIdPrefix + Integer.toString(new_id));
 
            //set state to the initial one.
-           new_job.setJobState(getJobState("PROPOSED"));
+           new_job.setJobState(stringToJobState("PROPOSED"));
            
            _jobs.add(new_job);
            
@@ -442,7 +461,7 @@ public class TransporterPort implements TransporterPortType {
          *  Possible names are stored in a static array.
          *  @see TransporterPort#JOB_STATUS_LIST
          */
-        private JobStateView getJobState(String state_name)
+        private JobStateView stringToJobState(String state_name)
         {
             return JobStateView.fromValue(state_name);
         }
