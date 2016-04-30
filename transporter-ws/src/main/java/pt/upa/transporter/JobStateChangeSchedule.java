@@ -47,7 +47,7 @@ public class JobStateChangeSchedule {
     private HashMap<String,Long> _scheduledDelayList;
     
     /**
-     * O tempo actual quando um job passa para o estado ACCEPTED.
+     * O tempo actual quando um job passa para o estado ACCEPTED (timestamp inicial).
      */
     private DateTime _acceptTime;
     
@@ -92,13 +92,39 @@ public class JobStateChangeSchedule {
     /**
      * Calcula o estado actual com base no tempo que passou desde a criaçao do schedule.
      * 
-     * @return o nome do estado em que o job deve estar.
+     * @return o nome do estado em que o job deve estar, i.e ACCEPTED, HEADING, 
+     *         ONGOING, COMPLETED.
      */
     public String getCurrentState()
     {
-        DateTime curr_time = DateTime.now();
-        //TODO
-        
-        return null;
+        //se ja passaram os 3 periodos...
+        if(_acceptTime.plus(getAcceptedToHeadingDelay() +
+                            getHeadingToOngoingDelay() +
+                            getOngoingToCompletedDelay()).isBeforeNow())
+        {
+            return completed;
+        }
+        //se passaram os dois primeiros periodos...
+        else if(_acceptTime.plus(getAcceptedToHeadingDelay() +
+                                 getHeadingToOngoingDelay()).isBeforeNow())
+        {
+            return ongoing;
+        }
+        //se passou so o primeiro periodo...
+        else if(_acceptTime.plus(getAcceptedToHeadingDelay()).isBeforeNow())
+        {
+            return heading;
+        }
+        //se nao passou nenhum... esta no estado inicial.
+        else
+            return accepted;
+            
     }
 }
+
+
+
+
+
+
+

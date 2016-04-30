@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import java.util.Random;
 
@@ -74,6 +75,16 @@ public class TransporterPort implements TransporterPortType {
         private LinkedList<JobView> _jobs;
         
         /**
+         * Stores a schedule for each job that is atleast in state ACCEPTED.
+         * - After a job is assigned a schedule, we use the schedule to find the current state
+         *   of the job (HEADING, ONGOIND, COMPLETED).
+         * 
+         * - Jobs mapped here must also be in the list of jobs.
+         *   @see TransporterPort#_jobs
+         */
+        private HashMap<JobView, JobStateChangeSchedule> _schedules;
+        
+        /**
          *  Name assigned to this transporter.
          *  UpaTransporter1, UpaTransporter2, etc...
          */
@@ -108,6 +119,7 @@ public class TransporterPort implements TransporterPortType {
         public TransporterPort(String transporter_name)
         {
             _jobs = new LinkedList<JobView>();
+            _schedules = new HashMap<JobView, JobStateChangeSchedule>();
             _jobIdList = new int[BASE_ID_ARRAY_SIZE];
             
             _transporterName = transporter_name;
@@ -235,6 +247,7 @@ public class TransporterPort implements TransporterPortType {
             System.out.println("Setting timers for state transitions...");
             
             JobStateChangeSchedule schedule = new JobStateChangeSchedule();
+            _schedules.put(deciding_job, schedule);
             
             System.out.println("Generated delays:");
             System.out.println("ACCEPTED to HEADING: " + schedule.getAcceptedToHeadingDelay());
