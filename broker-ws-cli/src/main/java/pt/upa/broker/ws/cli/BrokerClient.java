@@ -1,4 +1,4 @@
-package pt.upa.broker.ws.cli;
+package pt.upa.broker.ws.cli;..
 
 import pt.upa.broker.ws.BrokerPortType;
 import pt.upa.broker.ws.TransportView;
@@ -10,8 +10,6 @@ import pt.upa.broker.ws.UnknownLocationFault_Exception;
 
 import java.util.List;
 
-//NOTA: e suposto usar estas classes para chamar os metodos remotos.
-//usei os prototipos dos metodos como estao no BrokerPort, mas e suposto alterar isso.
 public class BrokerClient{
 
         BrokerPortType _broker;

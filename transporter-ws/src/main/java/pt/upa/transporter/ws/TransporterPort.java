@@ -177,8 +177,7 @@ public class TransporterPort implements TransporterPortType {
             {
                 if(job.getJobIdentifier().equals(id))
                 {
-                    
-                    
+                    //se o job ja estiver em andamento, vai actualizar o estado.
                     if(_schedules.containsKey(job))
                     {
                         JobStateChangeSchedule job_schedule = _schedules.get(job);
@@ -555,6 +554,8 @@ public class TransporterPort implements TransporterPortType {
             
             return Integer.parseInt(line.substring(offset));
         }
+        
+        
         
 	
 }

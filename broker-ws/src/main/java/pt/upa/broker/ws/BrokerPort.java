@@ -129,15 +129,19 @@ public class BrokerPort implements BrokerPortType {
             
                 String updated_state = null;
                 boolean found_job = false;
+            
                 
                 for(TransporterClient client : _transporters)
                 {
+                    //remote invocation, returns state of job, if found
                     updated_state = client.jobStatus(id);
+                
                     if(updated_state != null)
                     {
                         found_job = true;
                         break;
                     }
+                    
                 }
                 
                 if(!found_job)
@@ -145,15 +149,34 @@ public class BrokerPort implements BrokerPortType {
                     UnknownTransportFault fault = new UnknownTransportFault();
                     fault.setId(id);
                 
-                    throw new UnknownTransportFault_Exception("Transport with given ID was not found.", fault);
+                    throw new UnknownTransportFault_Exception("Transport with given ID was not found in any transporter.", fault);
                 }
                 
+                
                 TransportView result = null;
+                boolean found_transport = false;
                 
-//                 for)
-
+                for(TransportView transport : _transports)
+                {
+                    if(id.equals(transport.getId()))
+                    {
+                        result = transport;
+                        found_transport = true;
+                    }
+                }
                 
-		return null;
+                if(!found_transport)
+                {
+                    UnknownTransportFault fault = new UnknownTransportFault();
+                    fault.setId(id);
+                
+                    throw new UnknownTransportFault_Exception("Transport with given ID was found on a transporter, but not found in broker's list. WTF?", fault);
+                }
+                
+                if(updated_state.equals("HEADING") || updated_state.equals("ONGOING") || updated_state.equals("COMPLETED"))
+                    result.setState(stringToTransportState(updated_state));
+                
+		return result;
 	}
 
         // Tenta marcar um transporte de uma origem para um destido, com um preco maximo maior que 0
@@ -207,7 +230,7 @@ public class BrokerPort implements BrokerPortType {
 //                             throw new UnavailableTransportFault_Exception("",fault);
 //                         }
                         
-//                         if(proposed_prices[transporter] > 0)
+//                         if(proposed_prices[transporter] > 0 && proposed_prices[transporter] <= price)
 //                         {
 //                             createRequestedTransport(origin,destination, price, proposal_job_id.toString());
 //                         }
@@ -216,6 +239,8 @@ public class BrokerPort implements BrokerPortType {
 		
 		if(allProposalsRejected(proposed_prices))
 		{
+                    //TODO: tratar dos transportes requested?
+		
                     UnavailableTransportFault fault = new UnavailableTransportFault();
                     fault.setOrigin(origin);
                     fault.setDestination(destination);
@@ -239,18 +264,24 @@ public class BrokerPort implements BrokerPortType {
 		for(int i=0; i<proposed_prices.length; i++ )
                 {     
                 
-                    if(proposed_prices[i] == 0)
+                    if(proposed_prices[i] <= 0)
                         continue;
+                      
                 
                     if(proposed_prices[i] < lowest_price && proposed_prices[i] > 0)
                     {
                         lowest_price = proposed_prices[i];
                         lowest_price_index = i;
                     }
+                    
+                    if(proposed_prices[i] <= price)
+                        createBudgetedTransport(origin,destination,proposed_prices[i], proposed_identifiers[i]);
                 }
                 
                 if(lowest_price > price)
                 {
+                    //TODO: tratar dos transportes requested?
+                
                     UnavailableTransportPriceFault fault = new UnavailableTransportPriceFault();
                     fault.setBestPriceFound(lowest_price);
                     
@@ -265,6 +296,7 @@ public class BrokerPort implements BrokerPortType {
                 
                     throw new UnavailableTransportPriceFault_Exception("All offers received have prices above limit.", fault);
                 }
+                
                 
                 System.out.println("============================================================================");
                 StringBuilder builder = new StringBuilder();
@@ -301,11 +333,26 @@ public class BrokerPort implements BrokerPortType {
                 
                 int transporter_response = lowest_price_transporter.decideJob(proposed_identifiers[lowest_price_index], true);
                 
+                //transporter enviou resposta positiva
                 if(transporter_response == 0)
                 {
-                    createBookedTransport(origin, destination, price, proposed_identifiers[lowest_price_index]);
+                    createBookedTransport(origin, 
+                                          destination, 
+                                          proposed_prices[lowest_price_index], 
+                                          proposed_identifiers[lowest_price_index]);
+                }
+                //transporter enviou resposta negativa
+                else
+                {
+                    createFailedTransport(origin, 
+                                          destination, 
+                                          proposed_prices[lowest_price_index], 
+                                          proposed_identifiers[lowest_price_index]);
                 }
                 
+                printTransports();
+                
+                //retorna identificador do transporte com o preço mais baixo
                 return proposed_identifiers[lowest_price_index];
 
 	}
@@ -344,11 +391,11 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setPrice(price);
             new_transport.setId(id);
             
-            new_transport.setState(getTransportState("REQUESTED"));
+            new_transport.setState(stringToTransportState("REQUESTED"));
             
             int existing_transport_index = getIndexOfTransportWithIdentifier(id);
             
-            if(existing_transport_index != -1)
+            if(existing_transport_index  == -1)
             {
                 _transports.add(new_transport);
             }
@@ -370,11 +417,11 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setPrice(price);
             new_transport.setId(id);
             
-            new_transport.setState(getTransportState("BUDGETED"));
+            new_transport.setState(stringToTransportState("BUDGETED"));
             
             int existing_transport_index = getIndexOfTransportWithIdentifier(id);
             
-            if(existing_transport_index != -1)
+            if(existing_transport_index == -1)
             {
                 _transports.add(new_transport);
             }
@@ -395,11 +442,36 @@ public class BrokerPort implements BrokerPortType {
             new_transport.setPrice(price);
             new_transport.setId(id);
             
-            new_transport.setState(getTransportState("BOOKED"));
+            new_transport.setState(stringToTransportState("BOOKED"));
             
             int existing_transport_index = getIndexOfTransportWithIdentifier(id);
             
-            if(existing_transport_index != -1)
+            if(existing_transport_index == -1)
+            {
+                _transports.add(new_transport);
+            }
+            else
+            {
+                _transports.set(existing_transport_index, new_transport);
+            }
+            
+            return new_transport;
+	}
+	
+	private TransportView createFailedTransport(String origin, String destination, int price, String id)
+	{
+            TransportView new_transport = new TransportView();
+            new_transport.setOrigin(origin);
+            new_transport.setDestination(destination);
+            
+            new_transport.setPrice(price);
+            new_transport.setId(id);
+            
+            new_transport.setState(stringToTransportState("FAILED"));
+            
+            int existing_transport_index = getIndexOfTransportWithIdentifier(id);
+            
+            if(existing_transport_index == -1)
             {
                 _transports.add(new_transport);
             }
@@ -420,7 +492,7 @@ public class BrokerPort implements BrokerPortType {
          *  Possible names are stored in a static array.
          *  @see TransporterPort#JOB_STATUS_LIST
          */
-        private TransportStateView getTransportState(String state_name)
+        private TransportStateView stringToTransportState(String state_name)
         {
             return TransportStateView.fromValue(state_name);
         }
@@ -507,9 +579,26 @@ public class BrokerPort implements BrokerPortType {
                 {
                     return index;
                 }
+                
+                index++;
             }
             
             return -1;
+        }
+        
+        private void printTransports()
+        {
+            System.out.println("_______________________________________________________________");
+            System.out.println("_______________________________________________________________");
+            System.out.println("Printing all transports:");
+            for(TransportView transport : _transports)
+            {
+                System.out.println("Transport ID: \"" + transport.getId() + "\"." );
+                System.out.println("Transport price: \"" + transport.getPrice() + "\"." );
+                System.out.println("Transport state: \"" + transport.getState().value() + "\"." );
+            }
+            System.out.println("_______________________________________________________________");
+            System.out.println("_______________________________________________________________");
         }
         
 }
