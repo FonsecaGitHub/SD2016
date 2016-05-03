@@ -3,7 +3,7 @@ package pt.upa.transporter;
 //java.util
 import java.util.Map;
 
-//jax
+//javax
 import javax.xml.ws.Endpoint;
 import javax.xml.ws.BindingProvider;
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;

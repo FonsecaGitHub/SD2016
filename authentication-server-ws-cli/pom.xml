@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>pt.upa.c33</groupId>
-    <artifactId>authentication-server-ws</artifactId>
+    <artifactId>authentication-server-ws-cli</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -20,7 +20,7 @@
         <wsdl.directory>src/main/resources</wsdl.directory>
         <wsdl.filename>authserver.1_0.wsdl</wsdl.filename>
 
-        <mainclass>pt.upa.transporter.TransporterApplication</mainclass>
+        <mainclass>pt.upa.authserver.AuthenticationServerClient</mainclass>
 
         <ws.host>localhost</ws.host>
         <ws.port>8070</ws.port>
