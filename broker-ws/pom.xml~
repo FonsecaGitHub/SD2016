@@ -26,8 +26,6 @@
         <!-- instance number - redefine using -D option - e.g. mvn -Dws.i=2 exec:java -->
         <ws.i>1</ws.i>
 
-	<ws.backup>0<ws.backup>
-
         <ws.host>localhost</ws.host>
         <ws.port>809${ws.i}</ws.port>
         <ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>

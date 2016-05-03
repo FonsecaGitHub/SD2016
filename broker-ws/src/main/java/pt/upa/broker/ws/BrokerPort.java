@@ -10,6 +10,8 @@ import java.util.ListIterator;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.Timer;
+
 import java.lang.StringBuilder;
 
 import pt.upa.transporter.ws.JobView;
@@ -18,7 +20,18 @@ import pt.upa.transporter.ws.cli.TransporterClient;
 
 @WebService(endpointInterface = "pt.upa.broker.ws.BrokerPortType")
 public class BrokerPort implements BrokerPortType {        
-        
+
+	/* BrokerPort Backup
+	 * timeouts
+         * listas de conteudo a ser replicado
+	 */
+
+	static final long imAliveSendPeriod = 1000;
+	static final long checkMainBrokerTimeout = 1500;
+
+	
+	
+
         private static final int BAD_LOCATION_FAULT_VALUE = -2;
         private static final int BAD_PRICE_FAULT_VALUE = -3;
         
@@ -54,15 +67,45 @@ public class BrokerPort implements BrokerPortType {
                                                                 };
         
         
+	private boolean _isBackup;
+
         /** */
         private List<TransporterClient> _transporters;
         /** */
         private LinkedList<TransportView> _transports;
         
-        public BrokerPort()
+	public BrokerPort()
         {
+	    _isBackup = false;
             _transporters = new LinkedList<TransporterClient>(); 
             _transports = new LinkedList<TransportView>();
+
+	    new java.util.Timer().schedule( new java.util.TimerTask() {
+	      @Override
+	      public void run() {
+	      //TODO
+	      }
+	    },
+	    imAliveSendPeriod
+	    );
+        }
+        
+
+        public BrokerPort(boolean backup)
+        {
+	    _isBackup = true;
+
+            _transporters = new LinkedList<TransporterClient>(); 
+            _transports = new LinkedList<TransportView>();
+
+	    new java.util.Timer().schedule( new java.util.TimerTask() {
+	      @Override
+	      public void run() {
+	      //TODO
+	      }
+	    },
+	    checkMainBrokerTimeout
+	    );
         }
         
         //======= Local public methods ==================================================

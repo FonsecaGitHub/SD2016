@@ -40,8 +40,8 @@ public class BrokerApplication {
 		System.out.println(BrokerApplication.class.getSimpleName() + " starting...\n");
 
 		String uddiURL = args[0]; //http://localhost:9090
-		String name = args[1]; //UpaBrokerN
-		String url = args[2]; //http://localhost:809N/broker-ws/endpoint
+		String name = args[1]; //UpaBroker1
+		String url = args[2]; //http://localhost:8091/broker-ws/endpoint
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
@@ -54,6 +54,9 @@ public class BrokerApplication {
 			broker.setTransporters(clients);
 			
 			endpoint = Endpoint.create(broker);
+
+			//lookup broker principal
+		  
 
 			// publish endpoint
 			System.out.printf("Starting %s%n", url);
