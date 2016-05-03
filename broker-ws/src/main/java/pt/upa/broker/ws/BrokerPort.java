@@ -26,10 +26,8 @@ public class BrokerPort implements BrokerPortType {
          * listas de conteudo a ser replicado
 	 */
 
-	static final long imAliveSendPeriod = 1000;
-	static final long checkMainBrokerTimeout = 1500;
-
-	
+	private static final long IM_ALIVE_MESSAGE_PERIOD = 1000; //ms
+	private static final long MAIN_BROKER_ALIVE_TIMEOUT = 1500; //ms
 	
 
         private static final int BAD_LOCATION_FAULT_VALUE = -2;
@@ -67,6 +65,10 @@ public class BrokerPort implements BrokerPortType {
                                                                 };
         
         
+        /**
+         * Represents broker's status as a backup of another one.
+         * Is set to true if it is a backup.
+         */
 	private boolean _isBackup;
 
         /** */
@@ -77,35 +79,78 @@ public class BrokerPort implements BrokerPortType {
 	public BrokerPort()
         {
 	    _isBackup = false;
+	    
             _transporters = new LinkedList<TransporterClient>(); 
             _transports = new LinkedList<TransportView>();
 
-	    new java.util.Timer().schedule( new java.util.TimerTask() {
+            /**
+             * Schedule sending "IM ALIVE" message to backup broker.
+             * First execution after IM_ALIVE_MESSAGE_PERIOD ms.
+             * Then execute every IM_ALIVE_MESSAGE_PERIOD ms.
+             * 
+             * @see https://docs.oracle.com/javase/7/docs/api/java/util/Timer.html#schedule%28java.util.TimerTask,%20long,%20long%29
+             */
+            new java.util.Timer().schedule( new java.util.TimerTask() {
 	      @Override
 	      public void run() {
 	      //TODO
 	      }
 	    },
-	    imAliveSendPeriod
+	    IM_ALIVE_MESSAGE_PERIOD,
+	    IM_ALIVE_MESSAGE_PERIOD
 	    );
         }
         
 
         public BrokerPort(boolean backup)
         {
-	    _isBackup = true;
-
+	    if(backup)
+            {    
+                _isBackup = true;  
+                
+                /**
+                 * Schedule checking if received "IM ALIVE" message from main broker.
+                 * First execution after MAIN_BROKER_ALIVE_TIMEOUT ms.
+                 * Then execute every MAIN_BROKER_ALIVE_TIMEOUT ms.
+                 * 
+                 * @see https://docs.oracle.com/javase/7/docs/api/java/util/Timer.html#schedule%28java.util.TimerTask,%20long,%20long%29
+                 */
+                new java.util.Timer().schedule( new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        //TODO
+                    }
+                    },
+                    MAIN_BROKER_ALIVE_TIMEOUT,
+                    MAIN_BROKER_ALIVE_TIMEOUT
+                );
+            }
+            else
+            {
+                _isBackup = false;
+                
+                /**
+                 * Schedule sending "IM ALIVE" message to backup broker.
+                 * First execution after IM_ALIVE_MESSAGE_PERIOD ms.
+                 * Then execute every IM_ALIVE_MESSAGE_PERIOD ms.
+                 * 
+                 * @see https://docs.oracle.com/javase/7/docs/api/java/util/Timer.html#schedule%28java.util.TimerTask,%20long,%20long%29
+                 */
+                new java.util.Timer().schedule( new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        //TODO
+                    }
+                    },
+                    IM_ALIVE_MESSAGE_PERIOD,
+                    IM_ALIVE_MESSAGE_PERIOD
+                );
+            }
+                
             _transporters = new LinkedList<TransporterClient>(); 
             _transports = new LinkedList<TransportView>();
 
-	    new java.util.Timer().schedule( new java.util.TimerTask() {
-	      @Override
-	      public void run() {
-	      //TODO
-	      }
-	    },
-	    checkMainBrokerTimeout
-	    );
+            
         }
         
         //======= Local public methods ==================================================
