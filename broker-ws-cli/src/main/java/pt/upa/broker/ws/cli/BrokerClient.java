@@ -1,4 +1,4 @@
-package pt.upa.broker.ws.cli;..
+package pt.upa.broker.ws.cli;
 
 import pt.upa.broker.ws.BrokerPortType;
 import pt.upa.broker.ws.TransportView;
