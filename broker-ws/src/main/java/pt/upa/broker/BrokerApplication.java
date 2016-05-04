@@ -57,7 +57,6 @@ public class BrokerApplication {
 			endpoint = Endpoint.create(broker);
 
 			//lookup broker principal
-		  
 
 			// publish endpoint
 			System.out.printf("Starting %s%n", url);
