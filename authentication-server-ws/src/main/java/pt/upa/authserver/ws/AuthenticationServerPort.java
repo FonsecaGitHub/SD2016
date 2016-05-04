@@ -80,8 +80,42 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
             
             f_in.close();
         }
-
+        
+        /**
+         * WEBSERVICE: requestBrokerPublicKey
+         *
+         * @return BigInteger object containing broker's key.
+         */
 	public BigInteger requestBrokerPublicKey() 
+	{
+            return getBrokerPublicKey();
+	}
+	
+	
+        /**
+         * WEBSERVICE: requestTransporterPublicKey
+         *
+         * @param transporterNumber number of the transporter (1 or 2).
+         * @return BigInteger object containing the transporter's key.
+         */
+	public BigInteger requestTransporterPublicKey(Integer transporterNumber)
+	{
+            return getTransporterPublicKey(transporterNumber);
+	}
+	
+        
+        /**
+         * WEBSERVICE: requestCertificate
+         *
+         */
+	public CertificateView requestCertificate(String name)
+	{
+            //FIX WSDL?
+            return null;
+	}  
+	
+	//=============== PRIVATE METHODS =====================================================
+	private BigInteger getBrokerPublicKey()
 	{
             try
             {
@@ -100,7 +134,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
             }
 	}
 	
-	public BigInteger requestTransporterPublicKey(Integer transporterNumber)
+	private BigInteger getTransporterPublicKey(int number)
 	{
             try
             {
@@ -109,7 +143,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
                 BufferedReader f_reader = new BufferedReader(new FileReader(keys_file));
             
                 int lines_ignored;
-                int requested_key_line = 2*transporterNumber;
+                int requested_key_line = 2*number;
             
                 for(lines_ignored = 0; lines_ignored < requested_key_line; lines_ignored++)
                 {
@@ -126,11 +160,5 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
                 return null;
             }
 	}
-	
-	public CertificateView requestCertificate(String name)
-	{
-            //FIX WSDL?
-            return null;
-	}  
 
 }
