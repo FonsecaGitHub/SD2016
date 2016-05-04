@@ -14,6 +14,7 @@
 <definitions
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
     xmlns:tns="http://ws.authserver.upa.pt/"
@@ -53,7 +54,7 @@
             
             <xs:complexType name="requestBrokerPublicKeyResponse">
                 <xs:sequence>
-                    <xs:element name="return" type="xs:long" minOccurs="0" />
+                    <xs:element name="return" type="xsd:integer" minOccurs="0" />
                 </xs:sequence>
             </xs:complexType>
             <xs:element name="requestBrokerPublicKeyResponse" type="tns:requestBrokerPublicKeyResponse" />
@@ -68,7 +69,7 @@
             
             <xs:complexType name="requestTransporterPublicKeyResponse">
                 <xs:sequence>
-                    <xs:element name="return" type="xs:long" minOccurs="0" />
+                    <xs:element name="return" type="xsd:integer" minOccurs="0" />
                 </xs:sequence>
             </xs:complexType>s
             <xs:element name="requestTransporterPublicKeyResponse" type="tns:requestTransporterPublicKeyResponse" />
