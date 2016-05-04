@@ -28,7 +28,15 @@
 
         <ws.host>localhost</ws.host>
         <ws.port>809${ws.i}</ws.port>
+		
         <ws.url>http://${ws.host}:${ws.port}/broker-ws/endpoint</ws.url>
+		
+		<!--Backup server info-->
+		<!--
+		<ws.backup>2</ws.backup>
+		<ws.portBackup>809{ws.backup}</ws.portBackup>
+		<ws.urlBackup>http://${ws.host}:${ws.portBackup}/broker-ws/endpoint</ws.url>
+		-->
 
         <ws.name>UpaBroker</ws.name>
         <uddi.url>http://localhost:9090</uddi.url>

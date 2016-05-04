@@ -28,7 +28,7 @@ public class BrokerApplication {
 	public static void main(String[] args) throws Exception {
 
 		// Check arguments
-		if (args.length < 3) {
+		if (args.length < 4) {
 			System.err.println("Argument(s) missing!");
 			System.err.printf("Usage: java %s uddiURL wsName wsURL%n", BrokerApplication.class.getName());
 			return;
@@ -42,6 +42,7 @@ public class BrokerApplication {
 		String uddiURL = args[0]; //http://localhost:9090
 		String name = args[1]; //UpaBroker1
 		String url = args[2]; //http://localhost:8091/broker-ws/endpoint
+		//String urlBackup = args[3]; //http://localhost:8092/broker-ws/endpoint
 
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
