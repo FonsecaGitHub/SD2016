@@ -2,98 +2,127 @@ package pt.upa.authserver.ws;
 
 import javax.jws.WebService;
 
-// provides helper methods to print byte[]
+// provides helper methods to print byte[] 
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
+import static javax.xml.bind.DatatypeConverter.parseHexBinary;
+import static javax.xml.bind.DatatypeConverter.parseInteger;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
+
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import java.math.BigInteger;
 
+import java.util.Arrays;
 
+/**
+ * WebService that generates and distributes assymetric keys (public-private key pairs) to the broker 
+ * and transporters.
+ * Also gives public-key certificates to services that request it.
+ *
+ * ===============================================================
+ * Key pair and keystore generation commands:
+ * -----------------------------------------------------
+ * [$] keytool -genkeypair -alias "authserver" -keyalg RSA -keysize 2048 -keypass "authserver" -validity 90 -storepass "authserver_ks" -keystore authserver_keystore.jks -dname "CN=Henrical, OU=DEI, O=IST, L=Lisbon, S=Lisbon, C=PT"
+ *
+ * [$] keytool -genkeypair -alias "broker" -keyalg RSA -keysize 2048 -keypass "broker" -validity 90 -storepass "broker_ks" -keystore broker_keystore.jks -dname "CN=Henrical, OU=DEI, O=IST, L=Lisbon, S=Lisbon, C=PT"
+ *
+ * [$] keytool -genkeypair -alias "transporter1" -keyalg RSA -keysize 2048 -keypass "transporter1" -validity 90 -storepass "transporter_ks" -keystore transporter_keystore.jks -dname "CN=Henrical, OU=DEI, O=IST, L=Lisbon, S=Lisbon, C=PT"
+ *
+ * [$] keytool -genkeypair -alias "transporter2" -keyalg RSA -keysize 2048 -keypass "transporter2" -validity 90 -storepass "transporter_ks" -keystore transporter_keystore.jks -dname "CN=Henrical, OU=DEI, O=IST, L=Lisbon, S=Lisbon, C=PT"
+ * ===============================================================
+ *
+ * This generates three keystore: one for the CA (this service), one for the broker service, and one for the transporter service.
+ * 
+ * The first two keystore contain a single public-private keypair. The transporter keystore contains two pairs, one for each expected service.
+ * 
+ * The CA has access to all keystore and key pairs within them. The other services have access to their own keystore and may request public keys of other services from the CA.
+ * 
+ * ==============================================================
+ * Generation of public key certificates for all participants:
+ * -----------------------------------------------------
+ * [$] keytool -export -keystore authserver_keystore.jks -alias CA -storepass "authserver_ks" -file authserver.cer
+ * [$] keytool -export -keystore broker_keystore.jks -alias broker -storepass "broker_ks" -file broker.cer
+ * [$] keytool -export -keystore transporter_keystore.jks -alias transporter1 -storepass "transporter_ks" -file transporter1.cer
+ * [$] keytool -export -keystore transporter_keystore.jks -alias transporter2 -storepass "transporter_ks" -file transporter2.cer
+ * ==============================================================
+ * 
+ * This generates a public certificate for each of the four participants.
+ * 
+ * Each service may request it's public key certificate to the CA.
+ */
 @WebService(endpointInterface = "pt.upa.authserver.ws.AuthenticationServerPortType")
 public class AuthenticationServerPort implements AuthenticationServerPortType
 {
-        private final static int KEY_SIZE = 1024;
-        
-        private final static String KEYGEN_ALG = "RSA";
-        
-        private static final String KEYS_FILE_PATH = "./src/main/resources/keys.txt"; 
-        
-        public AuthenticationServerPort() throws NoSuchAlgorithmException, IOException
-        {
-                System.out.println(requestTransporterPublicKey(1).toString(16));
-                System.out.println(requestTransporterPublicKey(2).toString(16));
-                
-                System.out.println(requestTransporterPublicKey(1).toString(16).equals(requestTransporterPublicKey(2).toString(16)));
-//             File keys_file = new File(KEYS_FILE_PATH);
-//             
-//             BufferedReader f_reader = new BufferedReader(new FileReader(keys_file));
-//             
-//             String broker_public_key_string = f_reader.readLine();
-//             System.out.println(broker_public_key_string);
+        private static final String CERTIFICATE_TYPE = "X.509";
 
-        }
+        private static final String RESOURCES_DIRECTORY_PATH = "./src/main/resources/";
         
-        /**
-         * Generates a file in the resources folder of the project containing 
-         * broker and transporters keys. 
-         * 
-         */
-        private void generateKeysFile() throws NoSuchAlgorithmException, IOException
+        private static final String CA_KEYSTORE_FILENAME = "authserver_keystore.jks";
+        private static final String CA_KEYSTORE_PASSWORD = "authserver_ks";
+        private static final String CA_KEYPAIR_ALIAS = "authserver";
+        
+        private static final String BROKER_KEYSTORE_FILENAME = "broker_keystore.jks";
+        private static final String BROKER_KEYSTORE_PASSWORD= "broker_ks";
+        private static final String BROKER_KEYPAIR_ALIAS = "broker";
+        
+        private static final String TRANSPORTER_KEYSTORE_FILENAME = "transporter_keystore.jks";
+        private static final String TRANSPORTER_KEYSTORE_PASSWORD= "transporter_ks";
+        private static final String TRANSPORTER1_KEYPAIR_ALIAS = "transporter1";
+        private static final String TRANSPORTER2_KEYPAIR_ALIAS = "transporter2";
+        
+        private static final String CA_CERTIFICATE_FILENAME = "authserver.cer";
+        private static final String BROKER_CERTIFICATE_FILENAME = "broker.cer";
+        private static final String TRANSPORTER2_CERTIFICATE_FILENAME = "transporter1.cer";
+        private static final String TRANSPORTER1_CERTIFICATE_FILENAME = "transporter2.cer";
+        
+        
+        public AuthenticationServerPort() throws Exception
         {
-            KeyPairGenerator keygen = KeyPairGenerator.getInstance(KEYGEN_ALG);
-            keygen.initialize(KEY_SIZE);
-            KeyPair keys[] = { keygen.generateKeyPair(), //broker pub,priv keys
-                               keygen.generateKeyPair(), //trans1 pub,priv keys
-                               keygen.generateKeyPair(), //trans2 pub,priv keys
-                               keygen.generateKeyPair()  //CA pub,priv keys
-                             };
+            KeyStore ks = readKeystore(RESOURCES_DIRECTORY_PATH + CA_KEYSTORE_FILENAME, CA_KEYSTORE_PASSWORD);
             
-            File keys_file = new File(KEYS_FILE_PATH);
-            
-            if(!keys_file.exists())
-                keys_file.createNewFile();
-                
-            FileOutputStream f_out = new FileOutputStream(keys_file);
-            BufferedWriter f_in = new BufferedWriter(new OutputStreamWriter(f_out));
-                
-//             writer = new FileWriter(keys_file, false); //false = don't append
-//                 
-            for(KeyPair kpair : keys)
-            {
-                String private_key = printHexBinary(kpair.getPrivate().getEncoded());
-                String public_key = printHexBinary(kpair.getPublic().getEncoded());
-                
-                f_in.write(public_key + "\n");
-                f_in.write(private_key + "\n");
-            }
-            
-            f_in.close();
+            getBrokerPublicKey();
+        
+            System.out.println(printHexBinary(getPrivateKeyFromKeystore(ks, CA_KEYPAIR_ALIAS).getEncoded()));
         }
         
+        
         /**
-         * WEBSERVICE: requestBrokerPublicKey
+         * WEBMETHOD: requestBrokerPublicKey
          *
          * @return BigInteger object containing broker's key.
          */
 	public BigInteger requestBrokerPublicKey() 
 	{
-            return getBrokerPublicKey();
+            try
+            {
+                return getBrokerPublicKey();
+            }
+            catch(Exception excep)
+            {
+                excep.printStackTrace();
+                return null;
+            }
 	}
 	
 	
         /**
-         * WEBSERVICE: requestTransporterPublicKey
+         * WEBMETHOD: requestTransporterPublicKey
          *
          * @param transporterNumber number of the transporter (1 or 2).
          * @return BigInteger object containing the transporter's key.
@@ -105,7 +134,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	
         
         /**
-         * WEBSERVICE: requestCertificate
+         * WEBMETHOD: requestCertificate
          *
          */
 	public CertificateView requestCertificate(String name)
@@ -115,50 +144,114 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	}  
 	
 	//=============== PRIVATE METHODS =====================================================
-	private BigInteger getBrokerPublicKey()
+	/**
+	 * Reads a PrivateKey from a key-store
+	 * 
+	 * @return The private key.
+	 * @throws Exception 
+	 */
+	private static PrivateKey getPrivateKeyFromKeystore(KeyStore keystore, String keyAlias) throws Exception 
 	{
+		PrivateKey key = (PrivateKey) keystore.getKey(keyAlias, keyAlias.toCharArray());
+
+		return key;
+	}
+	
+	/**
+	 * Reads a KeyStore from a file
+	 * 
+	 * @return The read KeyStore
+	 * @throws Exception
+	 */
+	private static KeyStore readKeystore(String file_path, String keystore_password) throws Exception
+	{
+            FileInputStream file_instream = null;
+            
             try
             {
-                File keys_file = new File(KEYS_FILE_PATH);
-            
-                BufferedReader f_reader = new BufferedReader(new FileReader(keys_file));
-            
-                String broker_public_key_string = f_reader.readLine();
-            
-                return new BigInteger(broker_public_key_string, 16);
+                file_instream = new FileInputStream(file_path);
             }
-            catch(Exception excep)
+            catch(FileNotFoundException excep)
             {
                 excep.printStackTrace();
-                return null;
+                System.exit(-1);
             }
+            
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            
+            keystore.load(file_instream, keystore_password.toCharArray());     
+	
+            return keystore;
+	}
+    
+	/**
+	 * Reads a certificate from a file.
+	 * 
+	 * @param certificate_filepath filepath to the certificate
+	 * @return Certificate object or null.
+	 * @throws Exception
+	 */
+	 private static Certificate readCertificate(String certificate_filepath) throws Exception
+	 {
+            BufferedInputStream buffered_instream = null;
+            
+            Certificate result = null;
+            CertificateFactory cert_factory = CertificateFactory.getInstance("X.509");
+	 
+            try
+            {
+                buffered_instream = new BufferedInputStream(new FileInputStream(certificate_filepath));
+            }
+            catch(FileNotFoundException excep)
+            {
+                excep.printStackTrace();
+                System.exit(-1);
+            }
+            
+            int num_bytes_available_to_be_read = buffered_instream.available();
+            
+            if(num_bytes_available_to_be_read > 0)
+            {
+                result = cert_factory.generateCertificate(buffered_instream);
+            }
+            
+            buffered_instream.close();
+            
+            return result;
+	 }
+	
+	
+	
+	
+	private BigInteger getBrokerPublicKey() throws Exception
+	{
+            Certificate broker_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
+            
+            PublicKey broker_pkey = broker_certificate.getPublicKey();
+            
+            System.out.println("Retrieving public key of \"UpaBroker\" service:" );
+            System.out.println(printHexBinary(broker_pkey.getEncoded()));
+            
+            return new BigInteger(printHexBinary(broker_pkey.getEncoded()), 16);
 	}
 	
 	private BigInteger getTransporterPublicKey(int number)
 	{
-            try
-            {
-                File keys_file = new File(KEYS_FILE_PATH);
+//             Certificate transporter_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + TRANSPORTER_CERTIFICATE_FILENAME);
+//             
+//             PublicKey transporter_pkey = transporter_certificate.getPublicKey();
+//             
+//             System.out.println("Retrieving public key of \"UpaBroker\" service:" );
+//             System.out.println(printHexBinary(transporter_pkey.getEncoded()));
+//             
+//             return parseInteger(printHexBinary(broker_pkey.getEncoded()));
             
-                BufferedReader f_reader = new BufferedReader(new FileReader(keys_file));
-            
-                int lines_ignored;
-                int requested_key_line = 2*number;
-            
-                for(lines_ignored = 0; lines_ignored < requested_key_line; lines_ignored++)
-                {
-                    f_reader.readLine();
-                }
-            
-                String broker_public_key_string = f_reader.readLine();
-            
-                return new BigInteger(broker_public_key_string, 16);
-            }
-            catch(Exception excep)
-            {
-                excep.printStackTrace();
-                return null;
-            }
+            return null;
+	}
+	
+	private BigInteger getCAPublicKey()
+	{
+            return null;
 	}
 
 }
