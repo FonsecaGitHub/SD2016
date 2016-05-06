@@ -26,14 +26,6 @@
             targetNamespace="http://ws.authserver.upa.pt/"
             version="1.0">
             
-            <xs:complexType name="certificateView">
-                <xs:sequence>
-                    <xs:element name="certificate" type="xs:string" minOccurs="0" />
-                    <xs:element name="certificateRequest" type="xs:string" minOccurs="0" />
-                    <xs:element name="keystore" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            
             <xs:complexType name="requestCertificate">
                 <xs:sequence>
                     <xs:element name="name" type="xs:string" minOccurs="0" />
@@ -43,7 +35,7 @@
             
             <xs:complexType name="requestCertificateResponse">
                 <xs:sequence>
-                    <xs:element name="return" type="tns:certificateView" minOccurs="0" />
+                    <xs:element name="return" type="xsd:base64Binary" minOccurs="0" />
                 </xs:sequence>
             </xs:complexType>s
             <xs:element name="requestCertificateResponse" type="tns:requestCertificateResponse" />
@@ -74,138 +66,6 @@
             </xs:complexType>s
             <xs:element name="requestTransporterPublicKeyResponse" type="tns:requestTransporterPublicKeyResponse" />
             
-            
-            <!--<xs:complexType name="jobView">
-                <xs:sequence>
-                    <xs:element name="companyName" type="xs:string" minOccurs="0" />
-                    <xs:element name="jobIdentifier" type="xs:string" minOccurs="0" />
-                    <xs:element name="jobOrigin" type="xs:string" minOccurs="0" />
-                    <xs:element name="jobDestination" type="xs:string" minOccurs="0" />
-                    <xs:element name="jobPrice" type="xs:int" />
-                    <xs:element name="jobState" type="tns:jobStateView" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-        
-            <xs:simpleType name="jobStateView">
-                <xs:restriction base="xs:string">
-                    <xs:enumeration value="PROPOSED" />
-                    <xs:enumeration value="REJECTED" />
-                    <xs:enumeration value="ACCEPTED" />
-                    <xs:enumeration value="HEADING" />
-                    <xs:enumeration value="ONGOING" />
-                    <xs:enumeration value="COMPLETED" />
-                </xs:restriction>
-            </xs:simpleType>
-        
-        
-            <xs:complexType name="ping">
-                <xs:sequence>
-                    <xs:element name="name" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="ping" type="tns:ping" />
-        
-            <xs:complexType name="pingResponse">
-                <xs:sequence>
-                    <xs:element name="return" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="pingResponse" type="tns:pingResponse" />
-        
-        
-            <xs:complexType name="requestJob">
-                <xs:sequence>
-                    <xs:element name="origin" type="xs:string" minOccurs="0" />
-                    <xs:element name="destination" type="xs:string" minOccurs="0" />
-                    <xs:element name="price" type="xs:int" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="requestJob" type="tns:requestJob" />
-        
-            <xs:complexType name="requestJobResponse">
-                <xs:sequence>
-                    <xs:element name="return" type="tns:jobView" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="requestJobResponse" type="tns:requestJobResponse" />
-        
-        
-            <xs:complexType name="decideJob">
-                <xs:sequence>
-                    <xs:element name="id" type="xs:string" />
-                    <xs:element name="accept" type="xs:boolean" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="decideJob" type="tns:decideJob" />
-        
-            <xs:complexType name="decideJobResponse">
-                <xs:sequence>
-                    <xs:element name="return" type="tns:jobView" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="decideJobResponse" type="tns:decideJobResponse" />
-        
-        
-            <xs:complexType name="jobStatus">
-                <xs:sequence>
-                    <xs:element name="id" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="jobStatus" type="tns:jobStatus" />
-        
-            <xs:complexType name="jobStatusResponse">
-                <xs:sequence>
-                    <xs:element name="return" type="tns:jobView" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="jobStatusResponse" type="tns:jobStatusResponse" />
-        
-        
-            <xs:complexType name="listJobs">
-                <xs:sequence />
-            </xs:complexType>
-            <xs:element name="listJobs" type="tns:listJobs" />
-        
-            <xs:complexType name="listJobsResponse">
-                <xs:sequence>
-                    <xs:element name="return" type="tns:jobView" minOccurs="0" maxOccurs="unbounded" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="listJobsResponse" type="tns:listJobsResponse" />
-        
-        
-            <xs:complexType name="clearJobs">
-                <xs:sequence />
-            </xs:complexType>
-            <xs:element name="clearJobs" type="tns:clearJobs" />
-        
-            <xs:complexType name="clearJobsResponse">
-                <xs:sequence />
-            </xs:complexType>
-            <xs:element name="clearJobsResponse" type="tns:clearJobsResponse" />
-        
-        
-            <xs:complexType name="BadLocationFault">
-                <xs:sequence>
-                    <xs:element name="location" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="BadLocationFault" type="tns:BadLocationFault" />
-        
-            <xs:complexType name="BadPriceFault">
-                <xs:sequence>
-                    <xs:element name="price" type="xs:int" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="BadPriceFault" type="tns:BadPriceFault" />
-        
-            <xs:complexType name="BadJobFault">
-                <xs:sequence>
-                    <xs:element name="id" type="xs:string" minOccurs="0" />
-                </xs:sequence>
-            </xs:complexType>
-            <xs:element name="BadJobFault" type="tns:BadJobFault" />-->
-        
         </xs:schema>
     </types>
 

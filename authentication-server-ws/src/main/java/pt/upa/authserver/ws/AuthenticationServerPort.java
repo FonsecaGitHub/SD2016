@@ -13,6 +13,10 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
@@ -80,11 +84,16 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
         private static final String BROKER_KEYSTORE_FILENAME = "broker_keystore.jks";
         private static final String BROKER_KEYSTORE_PASSWORD= "broker_ks";
         private static final String BROKER_KEYPAIR_ALIAS = "broker";
+        private static final String BROKER_NAME = "UpaBroker";
         
         private static final String TRANSPORTER_KEYSTORE_FILENAME = "transporter_keystore.jks";
         private static final String TRANSPORTER_KEYSTORE_PASSWORD= "transporter_ks";
+        
         private static final String TRANSPORTER1_KEYPAIR_ALIAS = "transporter1";
+        private static final String TRANSPORTER1_NAME = "UpaTransporter1";
+        
         private static final String TRANSPORTER2_KEYPAIR_ALIAS = "transporter2";
+        private static final String TRANSPORTER2_NAME = "UpaTransporter2";
         
         private static final String CA_CERTIFICATE_FILENAME = "authserver.cer";
         private static final String BROKER_CERTIFICATE_FILENAME = "broker.cer";
@@ -96,9 +105,18 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
         {
             KeyStore ks = readKeystore(RESOURCES_DIRECTORY_PATH + CA_KEYSTORE_FILENAME, CA_KEYSTORE_PASSWORD);
             
-            getBrokerPublicKey();
-        
-            System.out.println(printHexBinary(getPrivateKeyFromKeystore(ks, CA_KEYPAIR_ALIAS).getEncoded()));
+//             getBrokerPublicKey();
+//         
+//             System.out.println(printHexBinary(getPrivateKeyFromKeystore(ks, CA_KEYPAIR_ALIAS).getEncoded()));
+            
+            if(requestCertificate("UpaBroker").length > 10)
+                System.out.println(true);
+                
+            if(requestCertificate("UpaTransporter1").length > 10)
+                System.out.println(true);
+                
+            if(requestCertificate("UpaTrorter1") == null)
+                System.out.println(true);
         }
         
         
@@ -129,7 +147,15 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
          */
 	public BigInteger requestTransporterPublicKey(Integer transporterNumber)
 	{
-            return getTransporterPublicKey(transporterNumber);
+            try
+            {
+                return getTransporterPublicKey(transporterNumber);
+            }
+            catch(Exception excep)
+            {
+                excep.printStackTrace();
+                return null;
+            }
 	}
 	
         
@@ -137,10 +163,38 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
          * WEBMETHOD: requestCertificate
          *
          */
-	public CertificateView requestCertificate(String name)
+	public byte[] requestCertificate(String name)
 	{
-            //FIX WSDL?
-            return null;
+            Path certificate_path;
+            
+            switch(name)
+            {
+                case(BROKER_NAME):
+                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
+                break;
+                case(TRANSPORTER1_NAME):
+                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + TRANSPORTER1_CERTIFICATE_FILENAME);
+                break;
+                case(TRANSPORTER2_NAME):
+                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + TRANSPORTER2_CERTIFICATE_FILENAME);
+                break;
+                default:
+                    return null;
+            }
+            
+            byte[] result;
+            
+            try
+            {
+                result = Files.readAllBytes(certificate_path);
+            }
+            catch(IOException excep)
+            {
+                excep.printStackTrace();
+                return null;
+            }
+
+            return result;
 	}  
 	
 	//=============== PRIVATE METHODS =====================================================
@@ -221,8 +275,6 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	 }
 	
 	
-	
-	
 	private BigInteger getBrokerPublicKey() throws Exception
 	{
             Certificate broker_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
@@ -235,23 +287,39 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
             return new BigInteger(printHexBinary(broker_pkey.getEncoded()), 16);
 	}
 	
-	private BigInteger getTransporterPublicKey(int number)
+	
+	private BigInteger getTransporterPublicKey(int number) throws Exception
 	{
-//             Certificate transporter_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + TRANSPORTER_CERTIFICATE_FILENAME);
-//             
-//             PublicKey transporter_pkey = transporter_certificate.getPublicKey();
-//             
-//             System.out.println("Retrieving public key of \"UpaBroker\" service:" );
-//             System.out.println(printHexBinary(transporter_pkey.getEncoded()));
-//             
-//             return parseInteger(printHexBinary(broker_pkey.getEncoded()));
+            String certificate_filename;
             
-            return null;
+            if(number == 1)
+                certificate_filename = TRANSPORTER1_CERTIFICATE_FILENAME;
+            else if(number == 2)
+                certificate_filename = TRANSPORTER2_CERTIFICATE_FILENAME;
+            else
+                return null;
+	
+            Certificate transporter_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + certificate_filename);
+
+            PublicKey transporter_pkey = transporter_certificate.getPublicKey();
+    
+            System.out.println("Retrieving public key of \"UpaTransporter" + number + "\" service:" );
+            System.out.println(printHexBinary(transporter_pkey.getEncoded()));
+            
+            return new BigInteger(printHexBinary(transporter_pkey.getEncoded()), 16);
 	}
 	
-	private BigInteger getCAPublicKey()
+	
+	private BigInteger getCAPublicKey() throws Exception
 	{
-            return null;
+            Certificate authserver_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + CA_CERTIFICATE_FILENAME );
+            
+            PublicKey authserver_pkey = authserver_certificate.getPublicKey();
+            
+            System.out.println("Retrieving public key of \"UpaBroker\" service:" );
+            System.out.println(printHexBinary(authserver_pkey.getEncoded()));
+            
+            return new BigInteger(printHexBinary(authserver_pkey.getEncoded()), 16);
 	}
 
 }

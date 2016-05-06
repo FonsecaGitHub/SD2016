@@ -4,22 +4,32 @@ import java.util.List;
 
 import java.lang.StringBuilder;
 
+import pt.upa.authserver.ws.cli.AuthenticationServerClient;
+
 import pt.upa.transporter.ws.TransporterPortType;
 import pt.upa.transporter.ws.JobView;
 import pt.upa.transporter.ws.BadJobFault_Exception;
 import pt.upa.transporter.ws.BadLocationFault_Exception;
 import pt.upa.transporter.ws.BadPriceFault_Exception;
 
-//NOTA: e suposto usar estas classes para chamar os metodos remotos.
-//usei os prototipos dos metodos como estao no TransporterPort, mas e suposto alterar isso.
 public class TransporterClient
 {
         private String _name; //i.e "UpaTransporter1"
         private TransporterPortType _port;
+        private AuthenticationServerClient _authServerClient;
         
         public TransporterClient(String name, TransporterPortType port){
             _port = port;
             _name = name;
+            try
+            {
+                _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
+            }
+            catch(Exception excep)
+            {
+                excep.printStackTrace();
+                return;
+            }
         }
         
         public String getName()

@@ -10,7 +10,8 @@ import pt.upa.broker.ws.UnknownLocationFault_Exception;
 
 import java.util.List;
 
-public class BrokerClient{
+public class BrokerClient
+{
 
         BrokerPortType _broker;
         
