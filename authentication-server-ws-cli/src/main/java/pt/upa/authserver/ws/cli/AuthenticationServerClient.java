@@ -12,17 +12,37 @@ import javax.xml.ws.BindingProvider;
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
 import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateException;
 
 import java.util.Map;
 
 import java.math.BigInteger;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 public class AuthenticationServerClient
 {
     private static final String WS_NAME = "AuthenticationServer";
     private static final String UDDI_URL = "http://localhost:9090";
-
+    
+    private static final String TRANSPORTER1_NAME = "UpaTransporter1";
+    private static final String TRANSPORTER2_NAME = "UpaTransporter2";
+    
     private AuthenticationServerPortType _port;
+    
+    /**
+     * Private constructor.
+     * Class instance can be obtained only through getAuthenticationServerClient().
+     * 
+     * @param port 
+     */
+    private AuthenticationServerClient(AuthenticationServerPortType port)
+    {
+        _port = port;
+    }
     
     public static AuthenticationServerClient getAuthenticationServerClient() throws Exception
     {
@@ -60,21 +80,47 @@ public class AuthenticationServerClient
         return client;
     }
     
-    private AuthenticationServerClient(AuthenticationServerPortType port)
+    public Certificate getCertificate(String name) throws CertificateException, IOException
     {
-        _port = port;
+        byte[] certificate_bytes = _port.requestCertificate(name);
+        
+        Certificate result = null;
+        CertificateFactory cert_factory = CertificateFactory.getInstance("X.509");
+        
+        BufferedInputStream bytes_instream = new BufferedInputStream(new ByteArrayInputStream(certificate_bytes));
+        
+        int num_bytes_available_to_be_read = bytes_instream.available();
+            
+        if(num_bytes_available_to_be_read > 0)
+        {
+            result = cert_factory.generateCertificate(bytes_instream);
+        }
+        
+        bytes_instream.close();
+        
+        return result;
     }
     
-    public Certificate getCertificate(String name)
+    public BigInteger getBrokerPublicKey()
     {
-        //todo
-        return null;
+        return _port.requestBrokerPublicKey();
     }
     
-    public BigInteger getPublicKey(String name)
+    public BigInteger getTransporterPublicKey(String name)
     {
-        //todo
-        return null;
+        int transporter_number;
+    
+        if(name.equals(TRANSPORTER1_NAME))
+            transporter_number = 1;
+        else if(name.equals(TRANSPORTER2_NAME))
+            transporter_number = 2;
+        else 
+            return null;
+        
+        BigInteger result = _port.requestTransporterPublicKey(transporter_number);
+        
+        return result;
+//         return _port.requestTransporterPublicKey(name);
     }
     
 }

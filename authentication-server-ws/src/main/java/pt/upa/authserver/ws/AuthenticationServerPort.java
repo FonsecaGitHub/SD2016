@@ -147,6 +147,8 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
          */
 	public BigInteger requestTransporterPublicKey(Integer transporterNumber)
 	{
+            System.out.println("Requested pkey of transp. number: " + transporterNumber);
+	
             try
             {
                 return getTransporterPublicKey(transporterNumber);
@@ -291,14 +293,21 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	private BigInteger getTransporterPublicKey(int number) throws Exception
 	{
             String certificate_filename;
-            
+            System.out.println("Requested pkey of transp. number: " + number);
             if(number == 1)
+            {
                 certificate_filename = TRANSPORTER1_CERTIFICATE_FILENAME;
+            }
             else if(number == 2)
+            {
                 certificate_filename = TRANSPORTER2_CERTIFICATE_FILENAME;
+            }
             else
+            {
+                System.out.println("returning null");
                 return null;
-	
+            }
+            
             Certificate transporter_certificate = readCertificate(RESOURCES_DIRECTORY_PATH + certificate_filename);
 
             PublicKey transporter_pkey = transporter_certificate.getPublicKey();

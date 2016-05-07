@@ -28,7 +28,7 @@ public class BrokerApplication {
 	public static void main(String[] args) throws Exception {
 
 		// Check arguments
-		if (args.length < 4) {
+		if (args.length < 3) {
 			System.err.println("Argument(s) missing!");
 			System.err.printf("Usage: java %s uddiURL wsName wsURL%n", BrokerApplication.class.getName());
 			return;
