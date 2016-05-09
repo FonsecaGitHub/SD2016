@@ -10,11 +10,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.jws.HandlerChain;
+
 import java.util.Random;
 
 import java.lang.Math;
 
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
+@HandlerChain(file="/handler-chain.xml")
 public class TransporterPort implements TransporterPortType {
         
         private static final String[] LOCATIONS_NORTH_REGION =  { "Porto",
