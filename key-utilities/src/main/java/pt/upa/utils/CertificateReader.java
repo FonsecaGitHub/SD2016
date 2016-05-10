@@ -30,12 +30,17 @@ public class CertificateReader
         }
         
         
-        public BigInteger getPublicKey() throws Exception
+        public BigInteger getPublicKeyEncoded() throws Exception
 	{   
             PublicKey pkey = _certificate.getPublicKey();
             
             return new BigInteger(printHexBinary(pkey.getEncoded()), 16);
 	}
+	
+	public PublicKey getPublicKey() throws Exception
+	{   
+            return _certificate.getPublicKey();
+        }
 
         //============= static private ========================================================
         /**

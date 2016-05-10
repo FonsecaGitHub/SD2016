@@ -3,3 +3,4 @@ target/
 *.kate-swp
 *.log
 *.txt
+broker-ws-cli_eval/

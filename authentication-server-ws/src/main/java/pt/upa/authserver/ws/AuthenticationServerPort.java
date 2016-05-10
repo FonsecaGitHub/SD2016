@@ -207,7 +207,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	{
             CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
             
-            BigInteger key = cert_reader.getPublicKey();
+            BigInteger key = cert_reader.getPublicKeyEncoded();
             
             System.out.println("Retrieving public key of \"UpaBroker\" service:" );
             System.out.println(key);
@@ -236,7 +236,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
             
             CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + certificate_filename);
         
-            BigInteger key = cert_reader.getPublicKey();
+            BigInteger key = cert_reader.getPublicKeyEncoded();
     
             System.out.println("Retrieving public key of \"UpaTransporter" + number + "\" service:" );
             System.out.println(key);
@@ -249,7 +249,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	{
             CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + CA_CERTIFICATE_FILENAME );
             
-            BigInteger key = cert_reader.getPublicKey();
+            BigInteger key = cert_reader.getPublicKeyEncoded();
             
             System.out.println("Retrieving public key of \"UpaBroker\" service:" );
             System.out.println(key);

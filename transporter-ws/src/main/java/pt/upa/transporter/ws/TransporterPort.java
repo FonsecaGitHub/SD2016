@@ -4,6 +4,8 @@ import javax.jws.WebService;
 
 import pt.upa.transporter.JobStateChangeSchedule;
 
+// import pt.tecnico.ws.handler.HeaderHandler;
+
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayList;

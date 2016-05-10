@@ -2,7 +2,11 @@ package pt.upa.transporter.ws.cli;
 
 import java.util.List;
 
+import pt.tecnico.ws.handler.HeaderHandler;
+
 import java.lang.StringBuilder;
+
+import javax.jws.HandlerChain;
 
 import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 
@@ -12,6 +16,7 @@ import pt.upa.transporter.ws.BadJobFault_Exception;
 import pt.upa.transporter.ws.BadLocationFault_Exception;
 import pt.upa.transporter.ws.BadPriceFault_Exception;
 
+@HandlerChain(file="/handler-chain.xml")
 public class TransporterClient
 {
         private String _name; //i.e "UpaTransporter1"
