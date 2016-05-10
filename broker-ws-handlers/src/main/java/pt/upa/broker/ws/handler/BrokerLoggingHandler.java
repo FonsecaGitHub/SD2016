@@ -1,5 +1,7 @@
 package pt.upa.broker.ws.handler;
 
+import pt.upa.authserver.ws.cli.AuthenticationServerClient;
+
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -12,6 +14,8 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
  * This SOAPHandler outputs the contents of inbound and outbound messages.
  */
 public class BrokerLoggingHandler implements SOAPHandler<SOAPMessageContext> {
+
+    public static final String MESSAGE_ID = "[BrokerLoggingHandler]";
 
     public Set<QName> getHeaders() {
         return null;
@@ -42,9 +46,9 @@ public class BrokerLoggingHandler implements SOAPHandler<SOAPMessageContext> {
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         if (outbound) {
-            System.out.println("Outbound SOAP message:");
+            System.out.println(MESSAGE_ID + " Outbound SOAP message:");
         } else {
-            System.out.println("Inbound SOAP message:");
+            System.out.println(MESSAGE_ID + " Inbound SOAP message:");
         }
 
         SOAPMessage message = smc.getMessage();

@@ -46,7 +46,7 @@ public class AuthenticationServerClient
     
     public static AuthenticationServerClient getAuthenticationServerClient() throws Exception
     {
-        System.out.println("=======================================================================================");
+//         System.out.println("=======================================================================================");
         System.out.println("Retrieving Athentication server client...");
         String uddiURL = UDDI_URL; 
         String name = WS_NAME;
@@ -75,7 +75,7 @@ public class AuthenticationServerClient
 
         AuthenticationServerClient client = new AuthenticationServerClient(port);
 		
-        System.out.println("=======================================================================================");
+//         System.out.println("=======================================================================================");
                 
         return client;
     }

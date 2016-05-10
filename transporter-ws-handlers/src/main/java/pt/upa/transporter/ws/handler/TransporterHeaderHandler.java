@@ -30,7 +30,8 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext> {
 
     public static final String CONTEXT_PROPERTY = "my.property";
-
+    public static final String MESSAGE_ID = "[TransporterHeaderHandler]";
+    
     //
     // Handler interface methods
     //
@@ -39,14 +40,14 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     }
 
     public boolean handleMessage(SOAPMessageContext smc) {
-        System.out.println("AddHeaderHandler: Handling message.");
+//         System.out.println("AddHeaderHandler: Handling message.");
 
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         try {
             if (outboundElement.booleanValue()) {
-                System.out.println("Writing header in outbound SOAP message...");
+//                 System.out.println("Writing header in outbound SOAP message...");
 
                 // get SOAP envelope
                 SOAPMessage msg = smc.getMessage();
@@ -68,7 +69,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                 element.addTextNode(valueString);
 
             } else {
-                System.out.println("Reading header in inbound SOAP message...");
+//                 System.out.println("Reading header in inbound SOAP message...");
 
                 // get SOAP envelope header
                 SOAPMessage msg = smc.getMessage();
@@ -78,7 +79,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
 
                 // check header
                 if (sh == null) {
-                    System.out.println("Header not found.");
+//                     System.out.println("Header not found.");
                     return true;
                 }
 
@@ -87,7 +88,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                 Iterator it = sh.getChildElements(name);
                 // check header element
                 if (!it.hasNext()) {
-                    System.out.println("Header element not found.");
+//                     System.out.println("Header element not found.");
                     return true;
                 }
                 SOAPElement element = (SOAPElement) it.next();
@@ -97,7 +98,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                 int value = Integer.parseInt(valueString);
 
                 // print received header
-                System.out.println("Header value is " + value);
+//                 System.out.println("Header value is " + value);
 
                 // put header in a property context
                 smc.put(CONTEXT_PROPERTY, value);
@@ -106,16 +107,16 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
 
             }
         } catch (Exception e) {
-            System.out.print("Caught exception in handleMessage: ");
+//             System.out.print("Caught exception in handleMessage: ");
             System.out.println(e);
-            System.out.println("Continue normal processing...");
+//             System.out.println("Continue normal processing...");
         }
 
         return true;
     }
 
     public boolean handleFault(SOAPMessageContext smc) {
-        System.out.println("Ignoring fault message...");
+//         System.out.println("Ignoring fault message...");
         return true;
     }
 

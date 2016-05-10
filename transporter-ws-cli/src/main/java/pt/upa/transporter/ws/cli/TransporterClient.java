@@ -25,18 +25,13 @@ public class TransporterClient
         private TransporterPortType _port;
         private AuthenticationServerClient _authServerClient;
         
-        public TransporterClient(String name, TransporterPortType port){
+        public TransporterClient(String name, TransporterPortType port) throws Exception
+        {
             _port = port;
             _name = name;
-            try
-            {
-                _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
-            }
-            catch(Exception excep)
-            {
-                excep.printStackTrace();
-                return;
-            }
+            
+//             _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
+
         }
         
         public String getName()

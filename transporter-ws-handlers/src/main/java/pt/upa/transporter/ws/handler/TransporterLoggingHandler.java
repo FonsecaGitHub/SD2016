@@ -13,6 +13,8 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
  */
 public class TransporterLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
+    public static final String MESSAGE_ID = "[TransporterLoggingHandler]";
+
     public Set<QName> getHeaders() {
         return null;
     }
@@ -42,9 +44,9 @@ public class TransporterLoggingHandler implements SOAPHandler<SOAPMessageContext
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         if (outbound) {
-            System.out.println("Outbound SOAP message:");
+            System.out.println(MESSAGE_ID + " Outbound SOAP message:");
         } else {
-            System.out.println("Inbound SOAP message:");
+            System.out.println(MESSAGE_ID + " Inbound SOAP message:");
         }
 
         SOAPMessage message = smc.getMessage();

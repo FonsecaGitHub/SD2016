@@ -1,5 +1,7 @@
 package pt.upa.broker.ws.handler;
 
+import pt.upa.authserver.ws.cli.AuthenticationServerClient;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -30,7 +32,25 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
 
     public static final String CONTEXT_PROPERTY = "my.property";
-
+    public static final String MESSAGE_ID = "[BrokerHeaderHandler]";
+    
+    public AuthenticationServerClient _authServerClient;
+    
+    public BrokerHeaderHandler() throws Exception
+    {
+        System.out.println(MESSAGE_ID + "------------------------------------------------------------------");
+    
+        System.out.println(MESSAGE_ID + " Setting up authentication server client...");
+        _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
+        
+        
+        if(_authServerClient != null)
+            System.out.println(MESSAGE_ID + " Authentication server client set up successfully.");
+        else
+            System.out.println(MESSAGE_ID + " Unable to set up authentication server client.");
+            
+        
+    }
     //
     // Handler interface methods
     //
@@ -39,14 +59,14 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     }
 
     public boolean handleMessage(SOAPMessageContext smc) {
-        System.out.println("AddHeaderHandler: Handling message.");
+//         System.out.println("AddHeaderHandler: Handling message.");
 
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         try {
             if (outboundElement.booleanValue()) {
-                System.out.println("Writing header in outbound SOAP message...");
+//                 System.out.println("Writing header in outbound SOAP message...");
 
                 // get SOAP envelope
                 SOAPMessage msg = smc.getMessage();
@@ -68,7 +88,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
                 element.addTextNode(valueString);
 
             } else {
-                System.out.println("Reading header in inbound SOAP message...");
+//                 System.out.println("Reading header in inbound SOAP message...");
 
                 // get SOAP envelope header
                 SOAPMessage msg = smc.getMessage();
@@ -78,7 +98,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
 
                 // check header
                 if (sh == null) {
-                    System.out.println("Header not found.");
+//                     System.out.println("Header not found.");
                     return true;
                 }
 
@@ -87,7 +107,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
                 Iterator it = sh.getChildElements(name);
                 // check header element
                 if (!it.hasNext()) {
-                    System.out.println("Header element not found.");
+//                     System.out.println("Header element not found.");
                     return true;
                 }
                 SOAPElement element = (SOAPElement) it.next();
@@ -97,7 +117,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
                 int value = Integer.parseInt(valueString);
 
                 // print received header
-                System.out.println("Header value is " + value);
+//                 System.out.println("Header value is " + value);
 
                 // put header in a property context
                 smc.put(CONTEXT_PROPERTY, value);
@@ -106,9 +126,9 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
 
             }
         } catch (Exception e) {
-            System.out.print("Caught exception in handleMessage: ");
+//             System.out.print("Caught exception in handleMessage: ");
             System.out.println(e);
-            System.out.println("Continue normal processing...");
+//             System.out.println("Continue normal processing...");
         }
 
         return true;
