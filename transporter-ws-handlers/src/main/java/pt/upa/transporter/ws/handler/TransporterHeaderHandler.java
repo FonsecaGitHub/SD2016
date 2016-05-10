@@ -1,4 +1,4 @@
-package pt.tecnico.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -27,7 +27,7 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
  *  is placed in a SOAP message context property
  *  that can be accessed by other handlers or by the application.
  */
-public class HeaderHandler implements SOAPHandler<SOAPMessageContext> {
+public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext> {
 
     public static final String CONTEXT_PROPERTY = "my.property";
 

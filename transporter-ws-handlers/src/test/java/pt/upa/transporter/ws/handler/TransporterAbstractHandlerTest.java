@@ -1,4 +1,4 @@
-package pt.tecnico.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import java.io.ByteArrayInputStream;
 
@@ -15,7 +15,7 @@ import org.junit.BeforeClass;
 /**
  *  Abstract handler test suite
  */
-public abstract class AbstractHandlerTest {
+public abstract class TransporterAbstractHandlerTest {
 
     // static members
 

@@ -75,7 +75,7 @@
         <dependency>
             <!-- jax-ws-handlers -->
             <groupId>pt.upa.a33</groupId>
-            <artifactId>ws-handlers</artifactId>
+            <artifactId>transporter-ws-handlers</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!-- key-utilities -->

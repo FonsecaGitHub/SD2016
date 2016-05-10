@@ -1,4 +1,4 @@
-package pt.tecnico.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import java.util.Set;
 
@@ -11,7 +11,7 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
  * This SOAPHandler outputs the contents of the message context for inbound and
  * outbound messages.
  */
-public class MessageContextHandler implements SOAPHandler<SOAPMessageContext> {
+public class TransporterMessageContextHandler implements SOAPHandler<SOAPMessageContext> {
 
     public Set<QName> getHeaders() {
         return null;

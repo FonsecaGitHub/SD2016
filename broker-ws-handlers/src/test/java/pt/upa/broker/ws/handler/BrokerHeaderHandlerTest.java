@@ -1,4 +1,4 @@
-package pt.tecnico.ws.handler;
+package pt.upa.broker.ws.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,7 +25,7 @@ import mockit.StrictExpectations;
 /**
  *  Handler test suite
  */
-public class HeaderHandlerTest extends AbstractHandlerTest {
+public class BrokerHeaderHandlerTest extends BrokerAbstractHandlerTest {
 
     // tests
 
@@ -52,7 +52,7 @@ public class HeaderHandlerTest extends AbstractHandlerTest {
         }};
 
         // Unit under test is exercised.
-        HeaderHandler handler = new HeaderHandler();
+        BrokerHeaderHandler handler = new BrokerHeaderHandler();
         boolean handleResult = handler.handleMessage(soapMessageContext);
 
         // Additional verification code, if any, either here or before the verification block.
@@ -103,12 +103,12 @@ public class HeaderHandlerTest extends AbstractHandlerTest {
             soapMessageContext.getMessage();
             result = soapMessage;
 
-            soapMessageContext.put(HeaderHandler.CONTEXT_PROPERTY, 22);
-            soapMessageContext.setScope(HeaderHandler.CONTEXT_PROPERTY, Scope.APPLICATION);
+            soapMessageContext.put(BrokerHeaderHandler.CONTEXT_PROPERTY, 22);
+            soapMessageContext.setScope(BrokerHeaderHandler.CONTEXT_PROPERTY, Scope.APPLICATION);
         }};
 
         // Unit under test is exercised.
-        HeaderHandler handler = new HeaderHandler();
+        BrokerHeaderHandler handler = new BrokerHeaderHandler();
         boolean handleResult = handler.handleMessage(soapMessageContext);
 
         // Additional verification code, if any, either here or before the verification block.
