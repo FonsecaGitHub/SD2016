@@ -2,9 +2,13 @@ package pt.upa.broker.ws.handler;
 
 import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 
+import pt.upa.utils.KeystoreReader;
+import pt.upa.utils.CertificateReader;
+
+import java.io.File;
+
 import java.util.Iterator;
 import java.util.Set;
-
 import javax.xml.namespace.QName;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPElement;
@@ -34,23 +38,83 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     public static final String CONTEXT_PROPERTY = "my.property";
     public static final String MESSAGE_ID = "[BrokerHeaderHandler]";
     
-    public AuthenticationServerClient _authServerClient;
+    private static final String BROKER_NAME = "UpaBroker";
     
+    private static final String LOCAL_KEYSTORE_DIRECTORY = "./keystores/";
+    private static final String LOCAL_KEYSTORE_NAME = "broker_keystore.jks";
+    private static final String LOCAL_KEYSTORE_PASSWORD = "broker_ks";
+    
+    /**
+     * Authentication Server Client.
+     * Used as an interface of communication between this and the authentication server.
+     */
+    private AuthenticationServerClient _authServerClient;
+    
+    /**
+     * Keystore reader.
+     * Used to read private keys from a key store.
+     */
+    private KeystoreReader _keyStoreReader;
+    
+    /**
+     * Certificate reader.
+     * Used to read public keys from a certificate.
+     */
+    private CertificateReader _certificateReader;
+    
+    /**
+     * Constructor. 
+     */
     public BrokerHeaderHandler() throws Exception
     {
-        System.out.println(MESSAGE_ID + "------------------------------------------------------------------");
+        print("------------------------------------------------------------------");
     
-        System.out.println(MESSAGE_ID + " Setting up authentication server client...");
+        print("Setting up authentication server client...");
+        
         _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
         
         
         if(_authServerClient != null)
-            System.out.println(MESSAGE_ID + " Authentication server client set up successfully.");
+            print("Authentication server client set up successfully.");
         else
-            System.out.println(MESSAGE_ID + " Unable to set up authentication server client.");
+            print("Unable to set up authentication server client.");
             
-        
+//         File keystore_file = new File(LOCAL_KEYSTORE_DIRECTORY + LOCAL_KEYSTORE_NAME);    
+            
+//         _keyStoreReader = new KeystoreReader(keystore_file , LOCAL_KEYSTORE_PASSWORD);
+        _certificateReader = null; //initialize when needed
     }
+    
+    /**
+     * Print message with handler ID. 
+     */
+    private void print(String message)
+    {
+        System.out.println(MESSAGE_ID + " " + message);
+    }
+    
+    /**
+     * Request public key certificate from auth.server.
+     */
+    private void requestPublicKeyCertificate() throws Exception
+    {
+        print(":::::::::::::::::::::::::::::::::::::::::::::::::");
+        print("Broker's certificate has not been requested yet.");
+        print("Requesting broker's certificate to the authentication server...");
+        byte[] certificate_bytes = _authServerClient.getCertificate(BROKER_NAME);
+        
+        if(certificate_bytes != null && certificate_bytes.length >= 1)
+        {
+            print("Broker's certificate obtained successfully");
+            _certificateReader = new CertificateReader(certificate_bytes);
+        }
+        else
+            print("Ups, something went terribly wrong... received byte array is invalid (null or empty)");
+        
+        print(":::::::::::::::::::::::::::::::::::::::::::::::::");
+        return;    
+    }
+    
     //
     // Handler interface methods
     //
@@ -58,14 +122,32 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         return null;
     }
 
-    public boolean handleMessage(SOAPMessageContext smc) {
-//         System.out.println("AddHeaderHandler: Handling message.");
+    /**
+     * Handle message.
+     * If message is outbound, add elements to header (signature, encrypted message digest, etc..)
+     * If message is inbound, verify headers.
+     */
+    public boolean handleMessage(SOAPMessageContext smc)
+    {
+        print("Handling message...");
 
+        try
+        {
+            if(_certificateReader == null)
+                requestPublicKeyCertificate();
+        }
+        catch(Exception excep)
+        {
+            excep.printStackTrace();
+            handleFault(smc);
+        }
+                
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         try {
-            if (outboundElement.booleanValue()) {
+            if (outboundElement.booleanValue()) 
+            {
 //                 System.out.println("Writing header in outbound SOAP message...");
 
                 // get SOAP envelope
@@ -87,7 +169,8 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
                 String valueString = Integer.toString(value);
                 element.addTextNode(valueString);
 
-            } else {
+            } 
+            else {
 //                 System.out.println("Reading header in inbound SOAP message...");
 
                 // get SOAP envelope header
@@ -135,7 +218,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     }
 
     public boolean handleFault(SOAPMessageContext smc) {
-        System.out.println("Ignoring fault message...");
+        print("Ignoring fault message...");
         return true;
     }
 

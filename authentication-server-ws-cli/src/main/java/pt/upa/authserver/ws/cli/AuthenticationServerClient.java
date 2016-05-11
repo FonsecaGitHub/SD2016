@@ -80,25 +80,12 @@ public class AuthenticationServerClient
         return client;
     }
     
-    public Certificate getCertificate(String name) throws CertificateException, IOException
+    public byte[] getCertificate(String name) throws CertificateException, IOException
     {
+        //web method
         byte[] certificate_bytes = _port.requestCertificate(name);
         
-        Certificate result = null;
-        CertificateFactory cert_factory = CertificateFactory.getInstance("X.509");
-        
-        BufferedInputStream bytes_instream = new BufferedInputStream(new ByteArrayInputStream(certificate_bytes));
-        
-        int num_bytes_available_to_be_read = bytes_instream.available();
-            
-        if(num_bytes_available_to_be_read > 0)
-        {
-            result = cert_factory.generateCertificate(bytes_instream);
-        }
-        
-        bytes_instream.close();
-        
-        return result;
+        return certificate_bytes;
     }
     
     public BigInteger getBrokerPublicKey()

@@ -77,7 +77,8 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 {
         private static final String CERTIFICATE_TYPE = "X.509";
 
-        private static final String RESOURCES_DIRECTORY_PATH = "./src/main/resources/";
+        private static final String CERTIFICATES_DIRECTORY_PATH = "./certificates/";
+        private static final String KEYSTORES_DIRECTORY_PATH = "./keystores/";
         
         private static final String CA_KEYSTORE_FILENAME = "authserver_keystore.jks";
         private static final String CA_KEYSTORE_PASSWORD = "authserver_ks";
@@ -106,16 +107,22 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
         public AuthenticationServerPort() throws Exception
         {   
         
-//             KeystoreReader ks_reader = new KeystoreReader(RESOURCES_DIRECTORY_PATH + BROKER_KEYSTORE_FILENAME, BROKER_KEYSTORE_PASSWORD);
-//             
+            KeystoreReader ks_reader = new KeystoreReader(KEYSTORES_DIRECTORY_PATH + BROKER_KEYSTORE_FILENAME, BROKER_KEYSTORE_PASSWORD);
+
+            if(ks_reader != null)
+                System.out.println(true);
+
 //             System.out.println(ks_reader.getPrivateKey(BROKER_KEYPAIR_ALIAS));
             
+                //success
             if(requestCertificate("UpaBroker").length > 10)
                 System.out.println(true);
                 
+                //success
             if(requestCertificate("UpaTransporter1").length > 10)
                 System.out.println(true);
                 
+                //erro
             if(requestCertificate("UpaTrorter1") == null)
                 System.out.println(true);
         }
@@ -173,13 +180,13 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
             switch(name)
             {
                 case(BROKER_NAME):
-                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
+                    certificate_path = Paths.get(CERTIFICATES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
                 break;
                 case(TRANSPORTER1_NAME):
-                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + TRANSPORTER1_CERTIFICATE_FILENAME);
+                    certificate_path = Paths.get(CERTIFICATES_DIRECTORY_PATH + TRANSPORTER1_CERTIFICATE_FILENAME);
                 break;
                 case(TRANSPORTER2_NAME):
-                    certificate_path = Paths.get(RESOURCES_DIRECTORY_PATH + TRANSPORTER2_CERTIFICATE_FILENAME);
+                    certificate_path = Paths.get(CERTIFICATES_DIRECTORY_PATH + TRANSPORTER2_CERTIFICATE_FILENAME);
                 break;
                 default:
                     return null;
@@ -205,7 +212,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	
 	private BigInteger getBrokerPublicKey() throws Exception
 	{
-            CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
+            CertificateReader cert_reader = new CertificateReader(CERTIFICATES_DIRECTORY_PATH + BROKER_CERTIFICATE_FILENAME);
             
             BigInteger key = cert_reader.getPublicKeyEncoded();
             
@@ -234,7 +241,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
                 return null;
             }
             
-            CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + certificate_filename);
+            CertificateReader cert_reader = new CertificateReader(CERTIFICATES_DIRECTORY_PATH + certificate_filename);
         
             BigInteger key = cert_reader.getPublicKeyEncoded();
     
@@ -247,7 +254,7 @@ public class AuthenticationServerPort implements AuthenticationServerPortType
 	
 	private BigInteger getCAPublicKey() throws Exception
 	{
-            CertificateReader cert_reader = new CertificateReader(RESOURCES_DIRECTORY_PATH + CA_CERTIFICATE_FILENAME );
+            CertificateReader cert_reader = new CertificateReader(CERTIFICATES_DIRECTORY_PATH + CA_CERTIFICATE_FILENAME );
             
             BigInteger key = cert_reader.getPublicKeyEncoded();
             

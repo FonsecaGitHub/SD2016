@@ -6,6 +6,7 @@ import java.security.PublicKey;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.File;
 
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
@@ -18,6 +19,11 @@ public class KeystoreReader
         public KeystoreReader(String path, String keystore_password) throws Exception
         {
             _keystore = readKeystore(path, keystore_password);
+        }
+        
+        public KeystoreReader(File file, String keystore_password) throws Exception
+        {
+            _keystore = readKeystore(file, keystore_password);
         }
         
         /**
@@ -35,7 +41,7 @@ public class KeystoreReader
 	
         //============= static private ========================================================
 	/**
-	 * Reads a KeyStore from a file.
+	 * Reads a KeyStore from a file path.
 	 * 
 	 * @return The read KeyStore.
 	 * 
@@ -66,5 +72,35 @@ public class KeystoreReader
 	}
 	
 
+	/**
+	 * Reads a KeyStore from a file.
+	 * 
+	 * @return The read KeyStore.
+	 * 
+	 * @param file_path File of the opened keystore.
+	 * @param keystore_password keystore's password.
+	 *
+	 * @throws Exception
+	 */
+	private static KeyStore readKeystore(File file, String keystore_password) throws Exception
+	{
+            FileInputStream file_instream = null;
+            
+            try
+            {
+                file_instream = new FileInputStream(file);
+            }
+            catch(FileNotFoundException excep)
+            {
+                excep.printStackTrace();
+                System.exit(-1);
+            }
+            
+            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            
+            keystore.load(file_instream, keystore_password.toCharArray());     
+	
+            return keystore;
+	}
     
 }

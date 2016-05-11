@@ -1,6 +1,9 @@
 <handler-chains xmlns="http://java.sun.com/xml/ns/javaee">
     <handler-chain>
         <handler>
+            <handler-class>pt.upa.broker.ws.handler.BrokerEarlyLoggingHandler</handler-class>
+        </handler>
+        <handler>
             <handler-class>pt.upa.broker.ws.handler.BrokerHeaderHandler</handler-class>
         </handler>
         <handler>
