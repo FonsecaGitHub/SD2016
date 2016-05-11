@@ -121,10 +121,10 @@ public class BrokerApplication {
 		try {
             TransporterClient[] clients = TransporterClientApplication.getTransporterList();
 			
-			BrokerPort broker = new BrokerPort();
-			broker.setTransporters(clients);
+			BrokerPort mainBroker = new BrokerPort();
+			mainBroker.setTransporters(clients);
 			
-			endpoint = Endpoint.create(broker);
+			endpoint = Endpoint.create(mainBroker);
 
 			// publish endpoint
 			System.out.printf("Starting %s%n", url);
@@ -182,10 +182,10 @@ public class BrokerApplication {
 		try {
             TransporterClient[] clients = TransporterClientApplication.getTransporterList();
 			
-			BrokerPort broker = new BrokerPort();
-			broker.setTransporters(clients);
+			BrokerPort backupBroker = new BrokerPort();
+			backupBroker.setTransporters(clients);
 			
-			endpoint = Endpoint.create(broker);
+			endpoint = Endpoint.create(backupBroker);
 
 			// publish endpoint
 			System.out.printf("Starting %s%n", backupURL);
