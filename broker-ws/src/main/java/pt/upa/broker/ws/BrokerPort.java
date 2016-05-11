@@ -93,7 +93,12 @@ public class BrokerPort implements BrokerPortType {
             new java.util.Timer().schedule( new java.util.TimerTask() {
 	      @Override
 	      public void run() {
-	      //TODO
+	    	//TODO
+	    	  /*
+	    	  nameThread("main");    	  
+	    	  this.notifyAll();
+	    	  System.out.println("Main Broker is running...");
+	    	  */
 	      }
 	    },
 	    IM_ALIVE_MESSAGE_PERIOD,
@@ -119,6 +124,18 @@ public class BrokerPort implements BrokerPortType {
                     @Override
                     public void run() {
                         //TODO
+                    	/*
+                    	nameThread("backup");     	 	
+                    	try {
+                    		wait();
+                    		} catch (InterruptedException e) {
+                    			System.out.println("Still waiting for Main Broker...");
+                    			e.printStackTrace();
+                    			}
+                    	// se nao receber mensagem de main broker dentro do tempo estipulado...
+                    	notifyAll();
+                    	System.out.println("Backup Broker is running...");
+                    	*/
                     }
                     },
                     MAIN_BROKER_ALIVE_TIMEOUT,
@@ -140,18 +157,79 @@ public class BrokerPort implements BrokerPortType {
                     @Override
                     public void run() {
                         //TODO
+                    	/*
+                    	System.out.println("Main Broker is running...");    
+                    	
+                    	notifyAll();                  	      
+                    	*/           	
                     }
                     },
                     IM_ALIVE_MESSAGE_PERIOD,
                     IM_ALIVE_MESSAGE_PERIOD
                 );
             }
+      
                 
             _transporters = new LinkedList<TransporterClient>(); 
             _transports = new LinkedList<TransportView>();
 
             
         }
+        
+      //=== Main/Backup management ===
+                
+                /**
+                 * Puts the thread to sleep for an ammount of time (seconds)
+                 * @param seconds
+                 */
+                private void nap(int seconds) {
+                    try {
+                        System.out.printf("%s %s>%n    ", Thread.currentThread(), this);
+                        System.out.printf("Sleeping for %d seconds...%n", seconds);
+        
+                        Thread.sleep(seconds*1000);
+        
+                        System.out.printf("%s %s>%n    ", Thread.currentThread(), this);
+                        System.out.printf("Woke up!%n");
+        
+                    } catch(InterruptedException e) {
+                        System.out.printf("%s %s>%n    ", Thread.currentThread(), this);
+                        System.out.printf("Caught exception: %s%n", e);
+                    }
+                }
+                
+                /**
+                 * Changes the name of the current Thread 
+                 * for easier identification
+                 * @param name
+                 */
+                private void nameThread(String name) {
+                	Thread t = Thread.currentThread();
+                	t.setName(name);
+                }
+                
+                /**
+                 * print current thread and object instance executing the operation
+                 * @param name
+                 * @return
+                 */
+                public String sayHello(String name) {
+                    // print current thread and object instance executing the operation
+                    System.out.printf("%s %s>%n    ", Thread.currentThread(), this);
+                    System.out.printf("sayHello(%s)%n", name);
+        
+                    // sleep
+                    //TODO check value
+                    nap(5);
+                    // execute operation
+                    String result = "Hello " + name + "!";
+        
+                    System.out.printf("%s %s>%n    ", Thread.currentThread(), this);
+                    System.out.printf("result=%s%n", result);
+                    return result;
+                }
+                
+              
         
         //======= Local public methods ==================================================
        
@@ -445,8 +523,6 @@ public class BrokerPort implements BrokerPortType {
 
 	}
 			
-		
-	
 
 	public String ping(String name) {
 		return "<<< Broker Pinged by \"" + name + "\"! >>>";	
