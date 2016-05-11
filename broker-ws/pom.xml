@@ -37,6 +37,8 @@
 		<ws.portBackup>809{ws.backup}</ws.portBackup>
 		<ws.urlBackup>http://${ws.host}:${ws.portBackup}/broker-ws/endpoint</ws.url>
 		-->
+        <ws.backup>false</ws.backup>
+        <ws.backupUrl>http://localhost:8092/broker-ws/endpoint</ws.backupUrl>
 
         <ws.name>UpaBroker</ws.name>
         <uddi.url>http://localhost:9090</uddi.url>
@@ -136,6 +138,8 @@
                         <argument>${uddi.url}</argument>
                         <argument>${ws.name}</argument>
                         <argument>${ws.url}</argument>
+                        <argument>${ws.backup}</argument>
+                        <argument>${ws.backupUrl}</argument>
                     </arguments>
                 </configuration>
             </plugin>

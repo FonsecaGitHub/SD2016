@@ -7,6 +7,8 @@ import pt.upa.utils.CertificateReader;
 
 import java.io.File;
 
+import java.security.PrivateKey;
+
 import java.util.Iterator;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -40,9 +42,11 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     
     private static final String BROKER_NAME = "UpaBroker";
     
-    private static final String LOCAL_KEYSTORE_DIRECTORY = "./keystores/";
+    private static final String LOCAL_KEYSTORE_DIRECTORY = "./src/main/resources/";
     private static final String LOCAL_KEYSTORE_NAME = "broker_keystore.jks";
     private static final String LOCAL_KEYSTORE_PASSWORD = "broker_ks";
+    
+    private static final String BROKER_KEYPAIR_ALIAS = "broker";
     
     /**
      * Authentication Server Client.
@@ -63,6 +67,12 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     private CertificateReader _certificateReader;
     
     /**
+     * Broker's private key.
+     * This is used to sign the message digest before sending.
+     */
+    private PrivateKey _brokerPrivateKey;
+    
+    /**
      * Constructor. 
      */
     public BrokerHeaderHandler() throws Exception
@@ -79,10 +89,14 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         else
             print("Unable to set up authentication server client.");
             
-//         File keystore_file = new File(LOCAL_KEYSTORE_DIRECTORY + LOCAL_KEYSTORE_NAME);    
+        File keystore_file = new File(LOCAL_KEYSTORE_DIRECTORY + LOCAL_KEYSTORE_NAME);    
             
-//         _keyStoreReader = new KeystoreReader(keystore_file , LOCAL_KEYSTORE_PASSWORD);
+        //set up keystore reader object
+        _keyStoreReader = new KeystoreReader(keystore_file , LOCAL_KEYSTORE_PASSWORD);
         _certificateReader = null; //initialize when needed
+        
+        //get broker's private key
+        _brokerPrivateKey = _keyStoreReader.getPrivateKey(BROKER_KEYPAIR_ALIAS);
     }
     
     /**
@@ -129,6 +143,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
      */
     public boolean handleMessage(SOAPMessageContext smc)
     {
+        System.out.println("--------------------------------------------------------------------------------------");
         print("Handling message...");
 
         try
