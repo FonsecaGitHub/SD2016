@@ -166,17 +166,6 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     {
         System.out.println("--------------------------------------------------------------------------------------");
         print("Handling message...");
-
-        try
-        {
-            if(_certificateReader == null)
-                requestPublicKeyCertificate();
-        }
-        catch(Exception excep)
-        {
-            excep.printStackTrace();
-            handleFault(smc);
-        }
                 
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
@@ -184,19 +173,22 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         try {
             if (outboundElement.booleanValue()) 
             {
-//                 System.out.println("Writing header in outbound SOAP message...");
+                print("Writing header in outbound SOAP message...");
                 try
                 {
+                    if(_certificateReader == null)
+                        requestPublicKeyCertificate();
+                    
                     appendIdentityToOutboundMsg(smc);
                     byte[] ciphered_digest = generateCipheredMessageDigest(smc);
                     appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
+                    appendCertificateToOutboundMsg(smc);
                 }
                 catch(Exception excep)
                 {
                     excep.printStackTrace();
                     handleFault(smc);
                 }
-                
                 
             } 
             else {
@@ -301,6 +293,30 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         
         return ciphered_digest;
     }
+    
+    /**
+     * Appends broker's certificate to an outbount message.
+     */
+     private void appendCertificateToOutboundMsg(SOAPMessageContext smc) throws Exception
+     {
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart msg_soap_part = msg.getSOAPPart();
+        SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
+
+        // add header
+        SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
+        if (msg_soap_header == null)
+            msg_soap_header = msg_soap_envelope.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = msg_soap_envelope.createName("certificateBytes", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
+
+        // add header element value
+        String valueString = printHexBinary(_certificateReader.getCertificateBytes());
+        element.addTextNode(valueString);
+     }
     
     /**
      * Appends the ciphered message digest to the SOAP message as a new header element.
