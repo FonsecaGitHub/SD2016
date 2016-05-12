@@ -1,4 +1,4 @@
-package pt.upa.broker.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 

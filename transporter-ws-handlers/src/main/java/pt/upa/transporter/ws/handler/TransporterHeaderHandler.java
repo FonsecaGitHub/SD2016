@@ -1,4 +1,4 @@
-package pt.upa.broker.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 
@@ -46,9 +46,11 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
  *  is placed in a SOAP message context property
  *  that can be accessed by other handlers or by the application.
  */
-public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext> {
+public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext> 
+{
 
-    public static final String CONTEXT_PROPERTY = "my.property";
+    public static final String TRANSPORTER_NAME_PROPERTY = "transporter.name.property";
+    
     public static final String MESSAGE_ID = "[TransporterHeaderHandler]";
     
     private static final String TRANSPORTER1_NAME = "UpaTransporter1";
@@ -169,12 +171,16 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         System.out.println("--------------------------------------------------------------------------------------");
         print("Handling message...");
                 
+        String propertyValue = (String) smc.get(TRANSPORTER_NAME_PROPERTY);
+        
+                
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         try {
             if (outboundElement.booleanValue()) 
             {
+                print(TRANSPORTER_NAME_PROPERTY + " is set to \"" + propertyValue + "\".");
                 print("Writing header in outbound SOAP message...");
                 try
                 {
@@ -226,9 +232,9 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
 //                 System.out.println("Header value is " + value);
 
                 // put header in a property context
-                smc.put(CONTEXT_PROPERTY, value);
+//                 smc.put(CONTEXT_PROPERTY, value);
                 // set property scope to application client/server class can access it
-                smc.setScope(CONTEXT_PROPERTY, Scope.APPLICATION);
+//                 smc.setScope(CONTEXT_PROPERTY, Scope.APPLICATION);
 
             }
         } catch (Exception e) {
@@ -245,30 +251,30 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         return true;
     }
     
-//     /**
-//      * Append broker's identity to an outbound message.
-//      */ 
-//     private void appendIdentityToOutboundMsg(SOAPMessageContext smc) throws Exception
-//     {
-//         // get SOAP envelope
-//         SOAPMessage msg = smc.getMessage();
-//         
-//         SOAPPart sp = msg.getSOAPPart();
-//         SOAPEnvelope se = sp.getEnvelope();
-// 
-//         // add header
-//         SOAPHeader sh = se.getHeader();
-//         if (sh == null)
-//             sh = se.addHeader();
-// 
-//         // add header element (name, namespace prefix, namespace)
-//         Name name = se.createName("senderName", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
-//         SOAPHeaderElement element = sh.addHeaderElement(name);
-// 
-//         // add header element value
-//         String valueString = BROKER_NAME;
-//         element.addTextNode(valueString);
-//     }
+    /**
+     * Append the transporters's identity to an outbound message.
+     */ 
+    private void appendIdentityToOutboundMsg(SOAPMessageContext smc) throws Exception
+    {
+        // get SOAP envelope
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart sp = msg.getSOAPPart();
+        SOAPEnvelope se = sp.getEnvelope();
+
+        // add header
+        SOAPHeader sh = se.getHeader();
+        if (sh == null)
+            sh = se.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = se.createName("senderName", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = sh.addHeaderElement(name);
+
+        // add header element value
+        String valueString = TRANSPORTER1_NAME;
+        element.addTextNode(valueString);
+    }
 //     
 //     /**
 //      * Generates a digest of an outbound message and ciphers it with brokers private key.

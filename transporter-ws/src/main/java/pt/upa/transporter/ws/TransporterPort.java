@@ -12,15 +12,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
+
+import javax.annotation.Resource;
+
 import javax.jws.HandlerChain;
 
 import java.util.Random;
 
 import java.lang.Math;
 
+
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
 @HandlerChain(file="/handler-chain.xml")
 public class TransporterPort implements TransporterPortType {
+        
+        @Resource
+	private WebServiceContext webServiceContext;
         
         private static final String[] LOCATIONS_NORTH_REGION =  { "Porto",
                                                                   "Braga",
@@ -140,7 +149,15 @@ public class TransporterPort implements TransporterPortType {
             }
         
          
-
+        /**
+         * Everytime a message is sent, sets a property of the header handler with the name of this transporter.
+         * i.e "UpaTransporter1"
+         */
+        public void messageContextUpdate()
+        {
+            MessageContext messageContext = webServiceContext.getMessageContext();
+            messageContext.put(TransporterHeaderHandler.TRANSPORTER_NAME_PROPERTY, _transporterName);
+        }
         
         
         // === REMOTE METHODS ==================================================================================
@@ -151,6 +168,8 @@ public class TransporterPort implements TransporterPortType {
 	public void clearJobs(){
             _jobs = new LinkedList<JobView>();
             _jobIdList = new int[BASE_ID_ARRAY_SIZE];
+            
+            messageContextUpdate();
 	}
 	
 	/**
@@ -163,6 +182,8 @@ public class TransporterPort implements TransporterPortType {
 	public List<JobView> listJobs(){
             List<JobView> list = new ArrayList<JobView>();
             list.addAll(_jobs);
+            
+            messageContextUpdate();
 	
             return list;
 	}
@@ -201,6 +222,8 @@ public class TransporterPort implements TransporterPortType {
                     result = job;
                 }
             }
+            
+            messageContextUpdate();
             
             return result;
 	}
@@ -278,6 +301,8 @@ public class TransporterPort implements TransporterPortType {
             System.out.println("ONGOING to COMPLETED: " + schedule.getOngoingToCompletedDelay());
             
             System.out.println("============================================================================");
+            
+            messageContextUpdate();
             
             return deciding_job;
 	}
@@ -392,6 +417,8 @@ public class TransporterPort implements TransporterPortType {
             System.out.println("Received job request. Returning job id \"" + proposed_job.getJobIdentifier() + "\" with proposed price " + Math.round(proposed_price) + ".");
             System.out.println("============================================================================");
             
+            messageContextUpdate();
+            
             return proposed_job;
 	}
 	
@@ -402,6 +429,8 @@ public class TransporterPort implements TransporterPortType {
 	 * @return string containing the server response.
 	 */
         public String ping(String name){
+        
+            messageContextUpdate();
         
             return "<<< Pinged by \"" + name + "\"! >>>";
         }
