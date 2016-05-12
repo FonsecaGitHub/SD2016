@@ -23,7 +23,8 @@ import pt.upa.broker.ws.BrokerPort;
 /**
  * Broker server application (main).
  */
-public class BrokerApplication {
+public class BrokerApplication 
+{
 
 	public static void main(String[] args) throws Exception {
 
@@ -46,65 +47,12 @@ public class BrokerApplication {
 		String backupURL = args[4]; //http://localhost:8092/broker-ws/endpoint
 		
 		if(backup) {
+                        System.out.println("Lauching backup Broker server...");
 			launchBackupBroker(uddiURL, name, backupURL);
 		}
 		
+		System.out.println("Lauching main Broker server...");
 		launchMainBroker(uddiURL, name, url);
-	
-		//TODO remove this code, becomes obsolete
-		/*	
-		Endpoint endpoint = null;
-		UDDINaming uddiNaming = null;
-		
-
-		try {
-            TransporterClient[] clients = TransporterClientApplication.getTransporterList();
-			
-			BrokerPort broker = new BrokerPort();
-			broker.setTransporters(clients);
-			
-			endpoint = Endpoint.create(broker);
-
-			// publish endpoint
-			System.out.printf("Starting %s%n", url);
-			endpoint.publish(url);
-
-			// publish to UDDI
-			System.out.printf("Publishing '%s' to UDDI at %s%n", name, uddiURL);
-			uddiNaming = new UDDINaming(uddiURL);
-			uddiNaming.rebind(name, url);
-
-			// wait
-			System.out.println("Awaiting connections");
-			System.out.println("Press enter to shutdown");
-			System.in.read();
-			
-
-		} catch (Exception e) {
-			System.out.printf("Caught exception: %s%n", e);
-			e.printStackTrace();
-
-		} finally {
-			try {
-				if (endpoint != null) {
-					// stop endpoint
-					endpoint.stop();
-					System.out.printf("Stopped %s%n", url);
-				}
-			} catch (Exception e) {
-				System.out.printf("Caught exception when stopping: %s%n", e);
-			}
-			try {
-				if (uddiNaming != null) {
-					// delete from UDDI
-					uddiNaming.unbind(name);
-					System.out.printf("Deleted '%s' from UDDI%n", name);
-				}
-			} catch (Exception e) {
-				System.out.printf("Caught exception when deleting: %s%n", e);
-			}
-		}*/
-
 	}
 	
 	/**
