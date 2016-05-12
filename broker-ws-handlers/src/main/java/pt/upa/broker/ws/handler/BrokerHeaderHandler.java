@@ -5,12 +5,23 @@ import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 import pt.upa.utils.KeystoreReader;
 import pt.upa.utils.CertificateReader;
 
+import static javax.xml.bind.DatatypeConverter.printHexBinary;
+import static javax.xml.bind.DatatypeConverter.parseHexBinary;
+
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.MessageDigest;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+
+import javax.crypto.Cipher;
+
 import javax.xml.namespace.QName;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPElement;
@@ -71,6 +82,15 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
      * This is used to sign the message digest before sending.
      */
     private PrivateKey _brokerPrivateKey;
+//     private PublicKey _brokerPublicKey;
+    
+    /**
+     * Structure used to map service names to their respective public keys.
+     * 
+     * i.e. "UpaTransporter1" --> transporter1 public key
+     * Public keys of other services are used to decrypt parts of messages sent by them.
+     */
+    private Map<String,PublicKey> _transporterPublicKeys;
     
     /**
      * Constructor. 
@@ -83,6 +103,7 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         
         _authServerClient = AuthenticationServerClient.getAuthenticationServerClient();
         
+        _transporterPublicKeys = new HashMap<String, PublicKey>();
         
         if(_authServerClient != null)
             print("Authentication server client set up successfully.");
@@ -164,26 +185,19 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
             if (outboundElement.booleanValue()) 
             {
 //                 System.out.println("Writing header in outbound SOAP message...");
-
-                // get SOAP envelope
-                SOAPMessage msg = smc.getMessage();
-                SOAPPart sp = msg.getSOAPPart();
-                SOAPEnvelope se = sp.getEnvelope();
-
-                // add header
-                SOAPHeader sh = se.getHeader();
-                if (sh == null)
-                    sh = se.addHeader();
-
-                // add header element (name, namespace prefix, namespace)
-                Name name = se.createName("myHeader", "d", "http://demo");
-                SOAPHeaderElement element = sh.addHeaderElement(name);
-
-                // add header element value
-                int value = 22;
-                String valueString = Integer.toString(value);
-                element.addTextNode(valueString);
-
+                try
+                {
+                    appendIdentityToOutboundMsg(smc);
+                    byte[] ciphered_digest = generateCipheredMessageDigest(smc);
+                    appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
+                }
+                catch(Exception excep)
+                {
+                    excep.printStackTrace();
+                    handleFault(smc);
+                }
+                
+                
             } 
             else {
 //                 System.out.println("Reading header in inbound SOAP message...");
@@ -236,8 +250,86 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         print("Ignoring fault message...");
         return true;
     }
+    
+    /**
+     * Append broker's identity to an outbound message.
+     */ 
+    private void appendIdentityToOutboundMsg(SOAPMessageContext smc) throws Exception
+    {
+        // get SOAP envelope
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart sp = msg.getSOAPPart();
+        SOAPEnvelope se = sp.getEnvelope();
 
-    public void close(MessageContext messageContext) {
+        // add header
+        SOAPHeader sh = se.getHeader();
+        if (sh == null)
+            sh = se.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = se.createName("senderName", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = sh.addHeaderElement(name);
+
+        // add header element value
+        String valueString = BROKER_NAME;
+        element.addTextNode(valueString);
+    }
+    
+    /**
+     * Generates a digest of an outbound message and ciphers it with brokers private key.
+     */
+    private byte[] generateCipheredMessageDigest(SOAPMessageContext smc) throws Exception
+    {
+        ByteArrayOutputStream msg_out = new ByteArrayOutputStream();
+    
+        SOAPMessage msg = smc.getMessage();
+    
+        msg.writeTo(msg_out);
+        byte[] msg_bytes = msg_out.toByteArray();
+        
+        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        
+        digest.update(msg_bytes);
+        byte[] digest_bytes = digest.digest();
+        
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        
+        cipher.init(Cipher.ENCRYPT_MODE, _brokerPrivateKey);
+        
+        byte[] ciphered_digest = cipher.doFinal(digest_bytes);
+        
+        return ciphered_digest;
+    }
+    
+    /**
+     * Appends the ciphered message digest to the SOAP message as a new header element.
+     */
+    private void appendCipheredDigestToOutboundMsg(SOAPMessageContext smc, byte[] ciphered_digest) throws Exception
+    {
+        // get SOAP envelope
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart msg_soap_part = msg.getSOAPPart();
+        SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
+
+        // add header
+        SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
+        if (msg_soap_header == null)
+            msg_soap_header = msg_soap_envelope.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = msg_soap_envelope.createName("cipheredDigest", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
+
+        // add header element value
+        String valueString = printHexBinary(ciphered_digest);
+        element.addTextNode(valueString);
+    }
+
+    
+    public void close(MessageContext messageContext) 
+    {
     }
 
 }
