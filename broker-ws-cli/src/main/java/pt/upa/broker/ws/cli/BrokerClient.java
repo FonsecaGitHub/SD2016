@@ -13,15 +13,15 @@ import java.util.List;
 public class BrokerClient
 {
 
-        BrokerPortType _broker;
-        
-        public BrokerClient(BrokerPortType broker)
-        {
-            _broker = broker;
-        }
+	BrokerPortType _broker;
+
+	public BrokerClient(BrokerPortType broker)
+	{
+		_broker = broker;
+	}
 
 	public void clearTransports() {
-            _broker.clearTransports();
+		_broker.clearTransports();
 	}
 
 	public List<TransportView> listTransports() {
@@ -29,14 +29,14 @@ public class BrokerClient
 	}
 
 	public TransportView viewTransport(String id) throws UnknownTransportFault_Exception {
-                
-               return _broker.viewTransport(id);
+
+		return _broker.viewTransport(id);
 	}
 
 	public String requestTransport(String origin, String destination, int price)
-		throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
-                
-                return _broker.requestTransport(origin, destination, price);
+			throws InvalidPriceFault_Exception, UnavailableTransportFault_Exception, UnavailableTransportPriceFault_Exception, UnknownLocationFault_Exception {
+
+		return _broker.requestTransport(origin, destination, price);
 	}
 
 	public String ping(String name) {

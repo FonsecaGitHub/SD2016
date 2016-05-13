@@ -30,13 +30,13 @@ public class BrokerApplication {
 		// Check arguments
 		if (args.length < 3) {
 			System.err.println("Argument(s) missing!");
-			System.err.printf("Usage: java %s uddiURL wsName wsURL%n", BrokerApplication.class.getName());
+			System.err.printf("Usage: java %s uddiURL wsName wsURL backupBool bakcupURL%n", BrokerApplication.class.getName());
 			return;
 		}
-                
-                System.out.println("#######################################################################################");
-                System.out.println("############################ Starting up Broker server... #############################");
-                
+
+		System.out.println("#######################################################################################");
+		System.out.println("############################ Starting up Broker server... #############################");
+
 		System.out.println(BrokerApplication.class.getSimpleName() + " starting...\n");
 
 		String uddiURL = args[0]; //http://localhost:9090
@@ -44,25 +44,25 @@ public class BrokerApplication {
 		String url = args[2]; //http://localhost:8091/broker-ws/endpoint
 		boolean backup = Boolean.parseBoolean(args[3]);
 		String backupURL = args[4]; //http://localhost:8092/broker-ws/endpoint
-		
+
 		if(backup) {
 			launchBackupBroker(uddiURL, name, backupURL);
 		}
-		
+
 		launchMainBroker(uddiURL, name, url);
-	
+
 		//TODO remove this code, becomes obsolete
 		/*	
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
-		
+
 
 		try {
             TransporterClient[] clients = TransporterClientApplication.getTransporterList();
-			
+
 			BrokerPort broker = new BrokerPort();
 			broker.setTransporters(clients);
-			
+
 			endpoint = Endpoint.create(broker);
 
 			// publish endpoint
@@ -78,7 +78,7 @@ public class BrokerApplication {
 			System.out.println("Awaiting connections");
 			System.out.println("Press enter to shutdown");
 			System.in.read();
-			
+
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
@@ -106,7 +106,7 @@ public class BrokerApplication {
 		}*/
 
 	}
-	
+
 	/**
 	 * Starts the Main Broker Server
 	 * @param uddiURL
@@ -116,14 +116,14 @@ public class BrokerApplication {
 	private static void launchMainBroker(String uddiURL, String name, String url) {
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
-		
+
 
 		try {
-            TransporterClient[] clients = TransporterClientApplication.getTransporterList();
-			
+			TransporterClient[] clients = TransporterClientApplication.getTransporterList();
+
 			BrokerPort mainBroker = new BrokerPort();
 			mainBroker.setTransporters(clients);
-			
+
 			endpoint = Endpoint.create(mainBroker);
 
 			// publish endpoint
@@ -139,7 +139,7 @@ public class BrokerApplication {
 			System.out.println("Awaiting connections");
 			System.out.println("Press enter to shutdown");
 			System.in.read();
-			
+
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
@@ -165,9 +165,9 @@ public class BrokerApplication {
 				System.out.printf("Caught exception when deleting: %s%n", e);
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * Starts the Backup Broker Server
 	 * @param uddiURL
@@ -177,14 +177,14 @@ public class BrokerApplication {
 	private static void launchBackupBroker(String uddiURL, String name, String backupURL) {
 		Endpoint endpoint = null;
 		UDDINaming uddiNaming = null;
-		
+
 
 		try {
-            TransporterClient[] clients = TransporterClientApplication.getTransporterList();
-			
+			TransporterClient[] clients = TransporterClientApplication.getTransporterList();
+
 			BrokerPort backupBroker = new BrokerPort();
 			backupBroker.setTransporters(clients);
-			
+
 			endpoint = Endpoint.create(backupBroker);
 
 			// publish endpoint
@@ -200,7 +200,7 @@ public class BrokerApplication {
 			System.out.println("Awaiting connections");
 			System.out.println("Press enter to shutdown");
 			System.in.read();
-			
+
 
 		} catch (Exception e) {
 			System.out.printf("Caught exception: %s%n", e);
@@ -226,7 +226,7 @@ public class BrokerApplication {
 				System.out.printf("Caught exception when deleting: %s%n", e);
 			}
 		}
-		
+
 	}
 
 }
