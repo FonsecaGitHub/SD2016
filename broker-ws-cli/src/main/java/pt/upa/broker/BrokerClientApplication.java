@@ -21,17 +21,17 @@ public class BrokerClientApplication {
 	private static final String UDDI_URL = "http://localhost:9090";
 	private static final String WS_NAME = "UpaBroker1";
 
-	private static final String WS_BACKUP_NAME = "UpaBroker2";
+	private static final String WS_BACKUP_NAME = "UpaBrokerBackup";
 
 	private static final long CLIENT_BROKER_TIMEOUT = 3000; //ms
 
 	public static void main(String[] args) throws Exception {
 		//Check Arguments
-		//                 if (args.length < 2) {
-		// 			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
-		// 			System.err.printf("Usage: java %s uddiURL name%n", BrokerClientApplication.class.getName());
-		// 			return;
-		// 		}
+		                 if (args.length < 3) {
+		 			System.err.println("Argument(s) missingimport static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;!");
+		 			System.err.printf("Usage: java %s uddiURL name%n", BrokerClientApplication.class.getName());
+		 			return;
+		 		}
 
 		BrokerClient client = getBrokerClient();
 
