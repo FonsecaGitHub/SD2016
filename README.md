@@ -18,8 +18,8 @@ Repositório:
 
 [0] Iniciar sistema operativo
 
-Indicar Windows ou Linux
-*(escolher um dos dois, que esteja disponível nos laboratórios, e depois apagar esta linha)*
+Linux
+
 
 
 [1] Iniciar servidores de apoio
@@ -41,9 +41,8 @@ mkdir ...
 [3] Obter código fonte do projeto (versão entregue)
 
 ```
-git clone ... 
+git clone -b SD_R2 https://github.com/tecnico-distsys/A_33-project
 ```
-*(colocar aqui comandos git para obter a versão entregue a partir da tag e depois apagar esta linha)*
 
 
 [4] Instalar módulos de bibliotecas auxiliares
@@ -54,7 +53,36 @@ mvn clean install
 ```
 
 ```
-cd ...
+cd key-utilities
+mvn clean install
+```
+
+```
+cd transporter-ws-handlers
+mvn clean install
+```
+
+```
+cd broker-ws-handlers
+mvn clean install
+```
+
+-------------------------------------------------------------------------------
+
+### Serviço AUTHENTICATION-SERVER
+
+[1] Construir e executar **servidor**
+
+```
+cd authentication-server-ws
+mvn clean install
+mvn exec:java
+```
+
+[2] Construir **cliente** e executar testes
+
+```
+cd authentication-server-cli
 mvn clean install
 ```
 
@@ -66,7 +94,7 @@ mvn clean install
 [1] Construir e executar **servidor**
 
 ```
-cd ...-ws
+cd transporter-ws
 mvn clean install
 mvn exec:java
 ```
@@ -74,11 +102,10 @@ mvn exec:java
 [2] Construir **cliente** e executar testes
 
 ```
-cd ...-ws-cli
+cd transporter-ws-cli
 mvn clean install
 ```
 
-...
 
 
 -------------------------------------------------------------------------------
@@ -88,20 +115,23 @@ mvn clean install
 [1] Construir e executar **servidor**
 
 ```
-cd ...-ws
+cd broker-ws
 mvn clean install
 mvn exec:java
 ```
 
+Executar broker como serviço backup:
+```
+mvn exec:java -Dws.backup="true"
+```
 
 [2] Construir **cliente** e executar testes
 
 ```
-cd ...-ws-cli
+cd broker-ws-cli
 mvn clean install
 ```
 
-...
 
 -------------------------------------------------------------------------------
 **FIM**

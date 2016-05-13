@@ -12,15 +12,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
+
+import javax.annotation.Resource;
+
 import javax.jws.HandlerChain;
 
 import java.util.Random;
 
 import java.lang.Math;
 
+
 @WebService(endpointInterface = "pt.upa.transporter.ws.TransporterPortType")
 @HandlerChain(file="/handler-chain.xml")
 public class TransporterPort implements TransporterPortType {
+        
+        @Resource
+	private WebServiceContext webServiceContext;
         
         private static final String[] LOCATIONS_NORTH_REGION =  { "Porto",
                                                                   "Braga",
@@ -140,7 +149,15 @@ public class TransporterPort implements TransporterPortType {
             }
         
          
-
+        /**
+         * Everytime a message is sent, sets a property of the header handler with the name of this transporter.
+         * i.e "UpaTransporter1"
+         */
+        public void messageContextUpdate()
+        {
+            MessageContext messageContext = webServiceContext.getMessageContext();
+            messageContext.put(TransporterHeaderHandler.TRANSPORTER_NAME_PROPERTY, _transporterName);
+        }
         
         
         // === REMOTE METHODS ==================================================================================
@@ -151,6 +168,8 @@ public class TransporterPort implements TransporterPortType {
 	public void clearJobs(){
             _jobs = new LinkedList<JobView>();
             _jobIdList = new int[BASE_ID_ARRAY_SIZE];
+            
+            messageContextUpdate();
 	}
 	
 	/**
@@ -161,6 +180,8 @@ public class TransporterPort implements TransporterPortType {
 	 * 
 	 */
 	public List<JobView> listJobs(){
+            messageContextUpdate();
+            
             List<JobView> list = new ArrayList<JobView>();
             list.addAll(_jobs);
 	
@@ -174,7 +195,9 @@ public class TransporterPort implements TransporterPortType {
 	 * @return element of JobView enum.
 	 *     @see pt.upa.transporter.ws.JobView
 	 */
-	public JobView jobStatus(String id){
+	public JobView jobStatus(String id)
+	{
+            messageContextUpdate();
             
             JobView result = null; 
             
@@ -201,7 +224,7 @@ public class TransporterPort implements TransporterPortType {
                     result = job;
                 }
             }
-            
+                        
             return result;
 	}
 	
@@ -218,6 +241,8 @@ public class TransporterPort implements TransporterPortType {
 	 */
 	public JobView decideJob(String id, boolean accept) throws BadJobFault_Exception
 	{
+            messageContextUpdate();
+	
             boolean found_job_with_id = false; //set true if job is found
             JobView deciding_job = null; 
             int found_job_index = 0; //index of the job, if it is found.
@@ -279,6 +304,7 @@ public class TransporterPort implements TransporterPortType {
             
             System.out.println("============================================================================");
             
+            
             return deciding_job;
 	}
 	
@@ -296,6 +322,8 @@ public class TransporterPort implements TransporterPortType {
 	public JobView requestJob(String origin, String destination, int price)
         throws BadLocationFault_Exception, BadPriceFault_Exception
 	{
+            messageContextUpdate();
+	
             if(!locationIsKnown(origin))
             {
                 BadLocationFault fault = new BadLocationFault();
@@ -402,6 +430,8 @@ public class TransporterPort implements TransporterPortType {
 	 * @return string containing the server response.
 	 */
         public String ping(String name){
+        
+            messageContextUpdate();
         
             return "<<< Pinged by \"" + name + "\"! >>>";
         }

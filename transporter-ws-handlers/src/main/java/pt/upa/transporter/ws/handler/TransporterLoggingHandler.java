@@ -1,5 +1,7 @@
 package pt.upa.transporter.ws.handler;
 
+import pt.upa.authserver.ws.cli.AuthenticationServerClient;
+
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -43,16 +45,22 @@ public class TransporterLoggingHandler implements SOAPHandler<SOAPMessageContext
         Boolean outbound = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
+                
         if (outbound) {
-            System.out.println(MESSAGE_ID + " Outbound SOAP message:");
+            System.out.println("--------------------------------------------------------------------------------------");
+            System.out.println(MESSAGE_ID + " OUTBOUND SOAP MESSAGE AFTER HEADER HANDLING:");
+            System.out.println(MESSAGE_ID + " ____________________________________________");
         } else {
-            System.out.println(MESSAGE_ID + " Inbound SOAP message:");
+            System.out.println("««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««");
+            System.out.println(MESSAGE_ID + " INBOUND SOAP MESSAGE:");
+            System.out.println(MESSAGE_ID + " _____________________");
         }
-
+        
         SOAPMessage message = smc.getMessage();
         try {
+            System.out.print(MESSAGE_ID + " ");
             message.writeTo(System.out);
-            System.out.println(); // just to add a newline to output
+            System.out.println();
         } catch (Exception e) {
             System.out.printf("Exception in handler: %s%n", e);
         }

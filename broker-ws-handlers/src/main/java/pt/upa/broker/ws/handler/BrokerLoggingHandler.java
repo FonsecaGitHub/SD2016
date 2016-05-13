@@ -48,10 +48,12 @@ public class BrokerLoggingHandler implements SOAPHandler<SOAPMessageContext> {
                 
         if (outbound) {
             System.out.println("--------------------------------------------------------------------------------------");
-            System.out.println(MESSAGE_ID + " Outbound SOAP message after header handling:");
+            System.out.println(MESSAGE_ID + " OUTBOUND SOAP MESSAGE AFTER HEADER HANDLING:");
+            System.out.println(MESSAGE_ID + " ____________________________________________");
         } else {
             System.out.println("««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««");
-            System.out.println(MESSAGE_ID + " Inbound SOAP message:");
+            System.out.println(MESSAGE_ID + " INBOUND SOAP MESSAGE:");
+            System.out.println(MESSAGE_ID + " _____________________");
         }
         
         SOAPMessage message = smc.getMessage();

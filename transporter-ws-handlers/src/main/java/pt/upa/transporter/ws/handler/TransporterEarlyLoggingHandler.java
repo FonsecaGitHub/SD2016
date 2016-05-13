@@ -1,4 +1,4 @@
-package pt.upa.broker.ws.handler;
+package pt.upa.transporter.ws.handler;
 
 import pt.upa.authserver.ws.cli.AuthenticationServerClient;
 
@@ -13,9 +13,9 @@ import javax.xml.ws.handler.soap.SOAPMessageContext;
 /**
  * This SOAPHandler outputs the contents of outbound messages before they are modified by header handler.
  */
-public class BrokerEarlyLoggingHandler implements SOAPHandler<SOAPMessageContext> {
+public class TransporterEarlyLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
-    public static final String MESSAGE_ID = "[BrokerEarlyLoggingHandler]";
+    public static final String MESSAGE_ID = "[TransporterEarlyLoggingHandler]";
 
     public Set<QName> getHeaders() {
         return null;

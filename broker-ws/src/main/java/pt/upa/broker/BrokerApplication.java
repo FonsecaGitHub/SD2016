@@ -23,7 +23,8 @@ import pt.upa.broker.ws.BrokerPort;
 /**
  * Broker server application (main).
  */
-public class BrokerApplication {
+public class BrokerApplication 
+{
 
 	public static void main(String[] args) throws Exception {
 
@@ -46,6 +47,7 @@ public class BrokerApplication {
 		String backupURL = args[4]; //http://localhost:8092/broker-ws/endpoint
 
 		if(backup) {
+                        System.out.println("Lauching backup Broker server...");
 			launchBackupBroker(uddiURL, name, backupURL);
 		}
 

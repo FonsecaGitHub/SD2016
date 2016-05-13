@@ -29,15 +29,27 @@ public class KeystoreReader
         /**
 	 * Reads a private key from a key-store
 	 * 
-	 * @return The private key.
+	 * @return The private key encoded in integer.
 	 * @throws Exception 
 	 */
-	public BigInteger getPrivateKey(String keyAlias) throws Exception 
+	public BigInteger getPrivateKeyEncoded(String keyAlias) throws Exception 
 	{
 		PrivateKey key = (PrivateKey) _keystore.getKey(keyAlias, keyAlias.toCharArray());
 
 		return new BigInteger(printHexBinary(key.getEncoded()), 16);
 	}
+	
+	/**
+	 * Reads a private key from a key-store
+	 * 
+	 * @return The private key object.
+	 * @throws Exception 
+	 */
+	public PrivateKey getPrivateKey(String keyAlias) throws Exception 
+	{
+                PrivateKey key = (PrivateKey) _keystore.getKey(keyAlias, keyAlias.toCharArray());
+                return key;
+        }
 	
         //============= static private ========================================================
 	/**
