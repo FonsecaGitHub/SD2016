@@ -61,9 +61,9 @@ public class BrokerClientApplication {
 		new java.util.Timer().schedule( new java.util.TimerTask() {
 			@Override
 			public void run() {
-				
+
 				//TODO se falhar um lookup deve tentar ligar-se ao backup
-				
+
 			}
 		},
 				CLIENT_BROKER_TIMEOUT,
