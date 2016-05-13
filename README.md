@@ -41,9 +41,7 @@ mkdir ...
 [3] Obter código fonte do projeto (versão entregue)
 
 ```
-git clone https://github.com/tecnico-distsys/A_33-project
-cd A_33-project
-git checkout tags/EntregaFinal
+git clone -b SD_R2 https://github.com/tecnico-distsys/A_33-project
 ```
 
 

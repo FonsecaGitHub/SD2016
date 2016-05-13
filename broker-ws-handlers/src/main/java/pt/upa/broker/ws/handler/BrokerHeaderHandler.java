@@ -82,7 +82,6 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
      * This is used to sign the message digest before sending.
      */
     private PrivateKey _brokerPrivateKey;
-//     private PublicKey _brokerPublicKey;
     
     /**
      * Structure used to map service names to their respective public keys.
@@ -244,7 +243,12 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     }
     
     /**
-     * Append broker's identity to an outbound message.
+     * Append broker's identity ("UpaBroker") to an outbound message.
+     * 
+     * Example: 
+     *     <broker-ws:senderName xmlns:broker-ws="http://localhost:8091/broker-ws/endpoint">
+     *         UpaBroker
+     *     </broker-ws:senderName>
      */ 
     private void appendIdentityToOutboundMsg(SOAPMessageContext smc) throws Exception
     {
@@ -296,6 +300,11 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     
     /**
      * Appends broker's certificate to an outbount message.
+     * 
+     * Example:
+     *     <broker-ws:certificateBytes xmlns:broker-ws="http://localhost:8091/broker-ws/endpoint">
+     *         035B30820243C855298206840C78E0FBFE0415155BEB94AC67FECC6F43DF6EC8D86EC524391A97AE64E2
+     *     </broker-ws:certificateBytes>
      */
      private void appendCertificateToOutboundMsg(SOAPMessageContext smc) throws Exception
      {
@@ -320,6 +329,11 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
     
     /**
      * Appends the ciphered message digest to the SOAP message as a new header element.
+     * 
+     * Example:
+     *     <broker-ws:cipheredDigest xmlns:broker-ws="http://localhost:8091/broker-ws/endpoint">
+     *         C63814B45410DF1145F82BA86C2C462E7550F1C9AFD1A55D38D7331B968D341561DC678
+     *     </broker-ws:cipheredDigest>
      */
     private void appendCipheredDigestToOutboundMsg(SOAPMessageContext smc, byte[] ciphered_digest) throws Exception
     {
@@ -343,6 +357,30 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
         element.addTextNode(valueString);
     }
 
+    /**
+     * Generate nonce to be appended to the SOAP message.
+     * 
+     * A "nonce" is some sort of mix between one or more random numbers and the momentaneous date.
+     * The implementation is not important as long as the probability of two message generating the same nonce is very very low.
+     * 
+     * Doing this will guaratee the freshness of message, i.e. counter replay-message attacks. 
+     */
+    private String generateNonce()
+    {
+        //TODO
+        return "";
+    }
+    
+    /**
+     * Append nonce to an outbound message.
+     * 
+     * @param nonce nonce to be appended.
+     */
+    private void appendNonceToOutboundMessage(String nonce)
+    {
+        //TODO
+    }
+    
     
     public void close(MessageContext messageContext) 
     {

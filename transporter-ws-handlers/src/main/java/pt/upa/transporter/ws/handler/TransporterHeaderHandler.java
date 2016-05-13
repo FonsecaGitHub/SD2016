@@ -53,15 +53,24 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     
     public static final String MESSAGE_ID = "[TransporterHeaderHandler]";
     
-    private static final String TRANSPORTER1_NAME = "UpaTransporter1";
-    private static final String TRANSPORTER2_NAME = "UpaTransporter2";
-
+    /**
+     * Information used to access the keystore in this project.
+     * The keystore contains 2 pairs of public-private keys, one for each transporter.
+     */
     private static final String LOCAL_KEYSTORE_DIRECTORY = "./src/main/resources/";
     private static final String LOCAL_KEYSTORE_NAME = "transporter_keystore.jks";
     private static final String LOCAL_KEYSTORE_PASSWORD = "transporter_ks";
     
+    //identifier of transporter1's public-private keypair in the keystore.
     private static final String TRANSPORTER1_KEYPAIR_ALIAS = "transporter1";
+    //identifier of transporter1, used to request keys from the authentication service.
+    private static final String TRANSPORTER1_NAME = "UpaTransporter1";
+    
+    //identifier of transporter2's public-private keypair in the keystore.
     private static final String TRANSPORTER2_KEYPAIR_ALIAS = "transporter2";
+    //identifier of transporter1, used to request keys from the authentication service.
+    private static final String TRANSPORTER2_NAME = "UpaTransporter2";
+    
     
     /**
      * Authentication Server Client.
@@ -76,10 +85,11 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     private KeystoreReader _keyStoreReader;
     
     /**
-     * Certificate reader.
+     * Certificate readers.
      * Used to read public keys from a certificate.
      */
-    private CertificateReader _certificateReader;
+    private CertificateReader _transporter1CertificateReader;
+    private CertificateReader _transporter2CertificateReader;
     
     /**
      * Transporters's public keys.
@@ -117,7 +127,8 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
             
         //set up keystore reader object
         _keyStoreReader = new KeystoreReader(keystore_file , LOCAL_KEYSTORE_PASSWORD);
-        _certificateReader = null; //initialize when needed
+        _transporter1CertificateReader = null; //initialize when needed
+        _transporter2CertificateReader = null; //initialize when needed
         
         //get broker's private key
         _transporter1PrivateKey = _keyStoreReader.getPrivateKey(TRANSPORTER1_KEYPAIR_ALIAS);
@@ -134,21 +145,33 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     
     /**
      * Request public key certificate from auth.server.
+     * 
+     * @param transporter_name i.e. "UpaTransporter1". This name is obtained when handling an outbound 
+     *                         message using the TRANSPORTER_NAME_PROPERTY property.
      */
-    private void requestPublicKeyCertificate() throws Exception
+    private void requestPublicKeyCertificates() throws Exception
     {
         print(":::::::::::::::::::::::::::::::::::::::::::::::::");
-        print("Transporter's certificate has not been requested yet.");
-        print("Requesting transporters's certificate to the authentication server...");
-        byte[] certificate_bytes = _authServerClient.getCertificate(TRANSPORTER1_NAME);
+        print("Transporters's certificates have not been requested yet.");
+        print("Requesting transporters's certificates to the authentication server...");
+        byte[] t1_certificate_bytes = _authServerClient.getCertificate(TRANSPORTER1_NAME);
+        byte[] t2_certificate_bytes = _authServerClient.getCertificate(TRANSPORTER2_NAME);
         
-        if(certificate_bytes != null && certificate_bytes.length >= 1)
+        if(t1_certificate_bytes != null && t1_certificate_bytes.length >= 1)
         {
-            print("Transporter's certificate obtained successfully");
-            _certificateReader = new CertificateReader(certificate_bytes);
+            print("Transporter 1 certificate obtained successfully.");
+            _transporter1CertificateReader = new CertificateReader(t1_certificate_bytes);
         }
         else
-            print("Ups, something went terribly wrong... received byte array is invalid (null or empty)");
+            print("Ups, something went terribly wrong obtaining transporter 1 certificate... received byte array is invalid (null or empty)");
+            
+        if(t2_certificate_bytes != null && t2_certificate_bytes.length >= 1)
+        {
+            print("Transporter 2 certificate obtained successfully");
+            _transporter2CertificateReader = new CertificateReader(t2_certificate_bytes);
+        }
+        else
+            print("Ups, something went terribly wrong obtaining transporter 2 certificate... received byte array is invalid (null or empty)");
         
         print(":::::::::::::::::::::::::::::::::::::::::::::::::");
         return;    
@@ -171,8 +194,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         System.out.println("--------------------------------------------------------------------------------------");
         print("Handling message...");
                 
-        String propertyValue = (String) smc.get(TRANSPORTER_NAME_PROPERTY);
-        
+        String sender_transporter_name = (String) smc.get(TRANSPORTER_NAME_PROPERTY);
                 
         Boolean outboundElement = (Boolean) smc
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
@@ -180,17 +202,19 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         try {
             if (outboundElement.booleanValue()) 
             {
-                print(TRANSPORTER_NAME_PROPERTY + " is set to \"" + propertyValue + "\".");
+                print(TRANSPORTER_NAME_PROPERTY + " is set to \"" + sender_transporter_name + "\".");
                 print("Writing header in outbound SOAP message...");
                 try
                 {
-                    if(_certificateReader == null)
-                        requestPublicKeyCertificate();
+                    if(_transporter1CertificateReader == null || _transporter2CertificateReader == null )
+                        requestPublicKeyCertificates();
                     
-//                     appendIdentityToOutboundMsg(smc);
-//                     byte[] ciphered_digest = generateCipheredMessageDigest(smc);
-//                     appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
-//                     appendCertificateToOutboundMsg(smc);
+                    appendIdentityToOutboundMsg(smc, sender_transporter_name);
+                    byte[] ciphered_digest = generateCipheredMessageDigest(smc, sender_transporter_name);
+                    appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
+                    appendCertificateToOutboundMsg(smc, sender_transporter_name);
+                    String nonce = generateNonce();
+                    appendNonceToOutboundMessage(nonce);
                 }
                 catch(Exception excep)
                 {
@@ -253,8 +277,13 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     
     /**
      * Append the transporters's identity to an outbound message.
+     * 
+     * Example:
+     *      <transporter-ws:senderName xmlns:transporter-ws="http://localhost:808x/transporter-ws/endpoint">
+     *          UpaTransporter2
+     *      </transporter-ws:senderName>
      */ 
-    private void appendIdentityToOutboundMsg(SOAPMessageContext smc) throws Exception
+    private void appendIdentityToOutboundMsg(SOAPMessageContext smc, String sender_transporter_name) throws Exception
     {
         // get SOAP envelope
         SOAPMessage msg = smc.getMessage();
@@ -268,89 +297,161 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
             sh = se.addHeader();
 
         // add header element (name, namespace prefix, namespace)
-        Name name = se.createName("senderName", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        Name name = se.createName("senderName", "transporter-ws", "http://localhost:808x/transporter-ws/endpoint");
         SOAPHeaderElement element = sh.addHeaderElement(name);
 
         // add header element value
-        String valueString = TRANSPORTER1_NAME;
+        String valueString = sender_transporter_name;
+       
+        if(valueString != null)
+            element.addTextNode(valueString);
+    }
+    
+    /**
+     * Generates a digest of an outbound message and ciphers it with brokers private key.
+     */
+    private byte[] generateCipheredMessageDigest(SOAPMessageContext smc, String sender_transporter_name) throws Exception
+    {
+        //convert message to a byte array
+        ByteArrayOutputStream msg_out = new ByteArrayOutputStream();
+    
+        SOAPMessage msg = smc.getMessage();
+    
+        msg.writeTo(msg_out);
+        byte[] msg_bytes = msg_out.toByteArray();
+        
+        //create message digest
+        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        
+        digest.update(msg_bytes);
+        byte[] digest_bytes = digest.digest();
+        
+        PrivateKey senders_private_key = null;
+        
+        if(sender_transporter_name == null)
+        {
+            print("generateCipheredMessageDigest: could not initialize senders_private_key.");
+            print("'sender_transporter_name is null'. Skipping adding message signature...");
+            return null;
+        }
+        
+        if(sender_transporter_name.equals(TRANSPORTER1_NAME))        
+            senders_private_key = _transporter1PrivateKey;
+        
+        else if(sender_transporter_name.equals(TRANSPORTER2_NAME))
+            senders_private_key = _transporter2PrivateKey;
+        
+        
+        //cipher digest
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        
+        cipher.init(Cipher.ENCRYPT_MODE, senders_private_key);
+        
+        byte[] ciphered_digest = cipher.doFinal(digest_bytes);
+        
+        return ciphered_digest;
+    }
+    
+    /**
+     * Appends this transporter's certificate to an outbount message.
+     */
+     private void appendCertificateToOutboundMsg(SOAPMessageContext smc, String sender_transporter_name) throws Exception
+     {
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart msg_soap_part = msg.getSOAPPart();
+        SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
+
+        // add header
+        SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
+        if (msg_soap_header == null)
+            msg_soap_header = msg_soap_envelope.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = msg_soap_envelope.createName("certificateBytes", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
+
+        // add header element value
+        String certificate_bytes_hexadecimal = null;
+        
+        if(sender_transporter_name == null)
+        {
+            print("appendCertificateToOutboundMsg: could not initialize certificate_bytes_hexadecimal.");
+            print("'sender_transporter_name is null'. Skipping adding certificate to message...");
+            return;
+        }
+        
+        if(sender_transporter_name.equals(TRANSPORTER1_NAME))
+        {
+            certificate_bytes_hexadecimal = printHexBinary(_transporter1CertificateReader.getCertificateBytes());
+        }
+        else if(sender_transporter_name.equals(TRANSPORTER2_NAME))
+        {
+            certificate_bytes_hexadecimal = printHexBinary(_transporter2CertificateReader.getCertificateBytes());
+        }
+        
+        
+        if(certificate_bytes_hexadecimal != null)
+            element.addTextNode(certificate_bytes_hexadecimal);
+     }
+    
+    /**
+     * Appends the ciphered message digest to the SOAP message as a new header element.
+     * 
+     * Example:
+     *      <transporter-ws:cipheredDigest xmlns:transporter-ws="http://localhost:808x/transporter-ws/endpoint">
+     *          85C816927213FC692F1DC82CF7B1820D2E45B6CA45D57446A495DAF0C4C2AC189D88D5C4C040403FB83
+     *      </transporter-ws:cipheredDigest>
+     */
+    private void appendCipheredDigestToOutboundMsg(SOAPMessageContext smc, byte[] ciphered_digest) throws Exception
+    {
+        if(ciphered_digest == null)
+            return;
+    
+        // get SOAP envelope
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart msg_soap_part = msg.getSOAPPart();
+        SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
+
+        // add header
+        SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
+        if (msg_soap_header == null)
+            msg_soap_header = msg_soap_envelope.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = msg_soap_envelope.createName("cipheredDigest", "transporter-ws", "http://localhost:808x/transporter-ws/endpoint");
+        SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
+
+        // add header element value
+        String valueString = printHexBinary(ciphered_digest);
         element.addTextNode(valueString);
     }
-//     
-//     /**
-//      * Generates a digest of an outbound message and ciphers it with brokers private key.
-//      */
-//     private byte[] generateCipheredMessageDigest(SOAPMessageContext smc) throws Exception
-//     {
-//         ByteArrayOutputStream msg_out = new ByteArrayOutputStream();
-//     
-//         SOAPMessage msg = smc.getMessage();
-//     
-//         msg.writeTo(msg_out);
-//         byte[] msg_bytes = msg_out.toByteArray();
-//         
-//         MessageDigest digest = MessageDigest.getInstance("SHA-1");
-//         
-//         digest.update(msg_bytes);
-//         byte[] digest_bytes = digest.digest();
-//         
-//         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-//         
-//         cipher.init(Cipher.ENCRYPT_MODE, _brokerPrivateKey);
-//         
-//         byte[] ciphered_digest = cipher.doFinal(digest_bytes);
-//         
-//         return ciphered_digest;
-//     }
-//     
-//     /**
-//      * Appends broker's certificate to an outbount message.
-//      */
-//      private void appendCertificateToOutboundMsg(SOAPMessageContext smc) throws Exception
-//      {
-//         SOAPMessage msg = smc.getMessage();
-//         
-//         SOAPPart msg_soap_part = msg.getSOAPPart();
-//         SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
-// 
-//         // add header
-//         SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
-//         if (msg_soap_header == null)
-//             msg_soap_header = msg_soap_envelope.addHeader();
-// 
-//         // add header element (name, namespace prefix, namespace)
-//         Name name = msg_soap_envelope.createName("certificateBytes", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
-//         SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
-// 
-//         // add header element value
-//         String valueString = printHexBinary(_certificateReader.getCertificateBytes());
-//         element.addTextNode(valueString);
-//      }
-//     
-//     /**
-//      * Appends the ciphered message digest to the SOAP message as a new header element.
-//      */
-//     private void appendCipheredDigestToOutboundMsg(SOAPMessageContext smc, byte[] ciphered_digest) throws Exception
-//     {
-//         // get SOAP envelope
-//         SOAPMessage msg = smc.getMessage();
-//         
-//         SOAPPart msg_soap_part = msg.getSOAPPart();
-//         SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
-// 
-//         // add header
-//         SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
-//         if (msg_soap_header == null)
-//             msg_soap_header = msg_soap_envelope.addHeader();
-// 
-//         // add header element (name, namespace prefix, namespace)
-//         Name name = msg_soap_envelope.createName("cipheredDigest", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
-//         SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
-// 
-//         // add header element value
-//         String valueString = printHexBinary(ciphered_digest);
-//         element.addTextNode(valueString);
-//     }
-
+    
+    /**
+     * Generate nonce to be appended to the SOAP message.
+     * 
+     * A "nonce" is some sort of mix between one or more random numbers and the momentaneous date.
+     * The implementation is not important as long as the probability of two message generating the same nonce is very very low.
+     * 
+     * Doing this will guaratee the freshness of message, i.e. counter replay-message attacks. 
+     */
+    private String generateNonce()
+    {
+        //TODO
+        //create Nonce generator in key-utilities app?
+        return "";
+    }
+    
+    /**
+     * Append nonce to an outbound message.
+     * 
+     * @param nonce nonce to be appended.
+     */
+    private void appendNonceToOutboundMessage(String nonce)
+    {
+        //TODO
+    }
     
     public void close(MessageContext messageContext) 
     {

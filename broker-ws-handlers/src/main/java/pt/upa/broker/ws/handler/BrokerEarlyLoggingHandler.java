@@ -48,7 +48,8 @@ public class BrokerEarlyLoggingHandler implements SOAPHandler<SOAPMessageContext
         System.out.println("««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««");
                 
         if (outbound) {
-            System.out.println(MESSAGE_ID + " Outbound SOAP message before header handling:");
+            System.out.println(MESSAGE_ID + " OUTBOUND SOAP MESSAGE BEFORE HEADER HANDLING:");
+            System.out.println(MESSAGE_ID + " _____________________________________________");
         } else {
             return;
         }
