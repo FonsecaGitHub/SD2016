@@ -180,10 +180,10 @@ public class TransporterPort implements TransporterPortType {
 	 * 
 	 */
 	public List<JobView> listJobs(){
+            messageContextUpdate();
+            
             List<JobView> list = new ArrayList<JobView>();
             list.addAll(_jobs);
-            
-            messageContextUpdate();
 	
             return list;
 	}
@@ -195,7 +195,9 @@ public class TransporterPort implements TransporterPortType {
 	 * @return element of JobView enum.
 	 *     @see pt.upa.transporter.ws.JobView
 	 */
-	public JobView jobStatus(String id){
+	public JobView jobStatus(String id)
+	{
+            messageContextUpdate();
             
             JobView result = null; 
             
@@ -222,9 +224,7 @@ public class TransporterPort implements TransporterPortType {
                     result = job;
                 }
             }
-            
-            messageContextUpdate();
-            
+                        
             return result;
 	}
 	
@@ -241,6 +241,8 @@ public class TransporterPort implements TransporterPortType {
 	 */
 	public JobView decideJob(String id, boolean accept) throws BadJobFault_Exception
 	{
+            messageContextUpdate();
+	
             boolean found_job_with_id = false; //set true if job is found
             JobView deciding_job = null; 
             int found_job_index = 0; //index of the job, if it is found.
@@ -302,7 +304,6 @@ public class TransporterPort implements TransporterPortType {
             
             System.out.println("============================================================================");
             
-            messageContextUpdate();
             
             return deciding_job;
 	}
@@ -321,6 +322,8 @@ public class TransporterPort implements TransporterPortType {
 	public JobView requestJob(String origin, String destination, int price)
         throws BadLocationFault_Exception, BadPriceFault_Exception
 	{
+            messageContextUpdate();
+	
             if(!locationIsKnown(origin))
             {
                 BadLocationFault fault = new BadLocationFault();
@@ -416,8 +419,6 @@ public class TransporterPort implements TransporterPortType {
             System.out.println("============================================================================");
             System.out.println("Received job request. Returning job id \"" + proposed_job.getJobIdentifier() + "\" with proposed price " + Math.round(proposed_price) + ".");
             System.out.println("============================================================================");
-            
-            messageContextUpdate();
             
             return proposed_job;
 	}

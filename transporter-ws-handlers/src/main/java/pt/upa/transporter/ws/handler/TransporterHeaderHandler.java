@@ -34,6 +34,7 @@ import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.MessageContext.Scope;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
+import javax.xml.ws.WebServiceException;
 
 /**
  *  This SOAPHandler shows how to set/get values from headers in
@@ -50,6 +51,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
 {
 
     public static final String TRANSPORTER_NAME_PROPERTY = "transporter.name.property";
+    public static final String VALID_SIGNATURE_PROPERTY = "valid.signature.property";
     
     public static final String MESSAGE_ID = "[TransporterHeaderHandler]";
     
@@ -71,6 +73,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     //identifier of transporter1, used to request keys from the authentication service.
     private static final String TRANSPORTER2_NAME = "UpaTransporter2";
     
+    private static final String BROKER_NAME = "UpaBroker";
     
     /**
      * Authentication Server Client.
@@ -100,7 +103,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     
     /**
      * Broker's public key.
-     * This is used to: fixme
+     * This is used to access brokers public key, in order to de-cipher a message received.
      */
     private PublicKey _brokerPublicKey;
     
@@ -144,10 +147,8 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
     }
     
     /**
-     * Request public key certificate from auth.server.
+     * Request brokers public key certificate from auth.server.
      * 
-     * @param transporter_name i.e. "UpaTransporter1". This name is obtained when handling an outbound 
-     *                         message using the TRANSPORTER_NAME_PROPERTY property.
      */
     private void requestPublicKeyCertificates() throws Exception
     {
@@ -177,6 +178,24 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         return;    
     }
     
+    /**
+     * Request public key certificate from auth.server.
+     *
+     */
+    private void requestBrokerPublicKey() throws Exception
+    {
+        byte[] broker_certificate_bytes = _authServerClient.getCertificate(BROKER_NAME);
+        
+        if(broker_certificate_bytes == null || broker_certificate_bytes.length < 1)
+            print("Something went wrong: broker_certificate_bytes is null or too short");
+        
+        CertificateReader broker_certificate_reader = new CertificateReader(broker_certificate_bytes);
+  
+        _brokerPublicKey = broker_certificate_reader.getPublicKey();
+  
+        return;
+    }
+    
     //
     // Handler interface methods
     //
@@ -200,6 +219,7 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                 .get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 
         try {
+            //outgoing message
             if (outboundElement.booleanValue()) 
             {
                 print(TRANSPORTER_NAME_PROPERTY + " is set to \"" + sender_transporter_name + "\".");
@@ -213,8 +233,10 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                     byte[] ciphered_digest = generateCipheredMessageDigest(smc, sender_transporter_name);
                     appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
                     appendCertificateToOutboundMsg(smc, sender_transporter_name);
-                    String nonce = generateNonce();
-                    appendNonceToOutboundMessage(nonce);
+                    
+                    //FIXME:implement
+//                     byte[] nonce = generateNonce();
+//                     appendNonceToOutboundMessage(nonce);
                 }
                 catch(Exception excep)
                 {
@@ -223,9 +245,8 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
                 }
                 
             } 
+            //incoming message
             else {
-//                 System.out.println("Reading header in inbound SOAP message...");
-
                 // get SOAP envelope header
                 SOAPMessage msg = smc.getMessage();
                 SOAPPart sp = msg.getSOAPPart();
@@ -234,24 +255,30 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
 
                 // check header
                 if (sh == null) {
-//                     System.out.println("Header not found.");
+                    print("Header not found.");
                     return true;
                 }
 
-                // get first header element
-                Name name = se.createName("myHeader", "d", "http://demo");
+                // get sender name header element
+                Name name = se.createName("senderName", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
                 Iterator it = sh.getChildElements(name);
                 // check header element
                 if (!it.hasNext()) {
-//                     System.out.println("Header element not found.");
+                    print("Sender name element was not found.");
                     return true;
                 }
-                SOAPElement element = (SOAPElement) it.next();
-
-                // get header element value
-                String valueString = element.getValue();
-                int value = Integer.parseInt(valueString);
-
+                
+                byte[] received_encrypted_digest_bytes = getEncryptedDigestBytesFromInboundMessageHeader(smc);
+                boolean signature_is_valid = verifySignature(smc, received_encrypted_digest_bytes);
+    
+                if(!signature_is_valid)
+                {
+                    print("Message rejected: Received ciphered digest does not match the message digest.");
+                    throw new WebServiceException();
+                }
+                else
+                    print("Message accepted!");
+                
                 // print received header
 //                 System.out.println("Header value is " + value);
 
@@ -428,30 +455,71 @@ public class TransporterHeaderHandler implements SOAPHandler<SOAPMessageContext>
         element.addTextNode(valueString);
     }
     
-    /**
-     * Generate nonce to be appended to the SOAP message.
-     * 
-     * A "nonce" is some sort of mix between one or more random numbers and the momentaneous date.
-     * The implementation is not important as long as the probability of two message generating the same nonce is very very low.
-     * 
-     * Doing this will guaratee the freshness of message, i.e. counter replay-message attacks. 
-     */
-    private String generateNonce()
+    private boolean verifySignature(SOAPMessageContext smc, byte[] received_encrypted_digest_bytes) throws Exception
     {
-        //TODO
-        //create Nonce generator in key-utilities app?
-        return "";
+        if(_brokerPublicKey == null)
+            requestBrokerPublicKey();
+        
+        ByteArrayOutputStream msg_out = new ByteArrayOutputStream();
+    
+        SOAPMessage msg = smc.getMessage();
+    
+        msg.writeTo(msg_out);
+        byte[] message_bytes = msg_out.toByteArray();
+        
+        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        
+        digest.update(message_bytes);
+        byte[] digest_bytes = digest.digest();
+        
+        // get an RSA cipher object
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+
+        // decrypt the ciphered digest using the public key
+        cipher.init(Cipher.DECRYPT_MODE, _brokerPublicKey);
+        byte[] received_digest_bytes = cipher.doFinal(received_encrypted_digest_bytes);
+        print("Deciphered digest.");
+        print("Comparing digest with with original message...");
+        
+        //compare digests
+        if (digest_bytes.length != received_digest_bytes.length)
+            return false;
+
+        for (int i = 0; i < digest_bytes.length; i++)
+        {
+            if (digest_bytes[i] != received_digest_bytes[i])
+                return false;
+        }
+        
+        return true;
     }
     
-    /**
-     * Append nonce to an outbound message.
-     * 
-     * @param nonce nonce to be appended.
-     */
-    private void appendNonceToOutboundMessage(String nonce)
+    private byte[] getEncryptedDigestBytesFromInboundMessageHeader(SOAPMessageContext smc) throws Exception
     {
-        //TODO
+        // get SOAP envelope header
+        SOAPMessage msg = smc.getMessage();
+        SOAPPart sp = msg.getSOAPPart();
+        SOAPEnvelope se = sp.getEnvelope();
+        SOAPHeader sh = se.getHeader();
+    
+        Name name = se.createName("cipheredDigest", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        Iterator it = sh.getChildElements(name);
+        
+        // check header element
+        if (!it.hasNext()) {
+            print("Digest bytes element was not found in inbound message.");
+            return null;
+        }
+        
+        SOAPElement element = (SOAPElement) it.next();
+
+        // get header element value
+        String encrypted_digest = element.getValue();
+        byte[] encrypted_digest_bytes = parseHexBinary(encrypted_digest);
+        
+        return encrypted_digest_bytes;        
     }
+    
     
     public void close(MessageContext messageContext) 
     {

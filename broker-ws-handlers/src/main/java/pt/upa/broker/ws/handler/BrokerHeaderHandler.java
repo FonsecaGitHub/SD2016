@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.Date;
 
 import javax.crypto.Cipher;
 
@@ -182,6 +184,9 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
                     byte[] ciphered_digest = generateCipheredMessageDigest(smc);
                     appendCipheredDigestToOutboundMsg(smc, ciphered_digest);
                     appendCertificateToOutboundMsg(smc);
+                    
+                    byte[] nonce = generateNonce();
+                    appendNonceToOutboundMessage(smc,nonce);
                 }
                 catch(Exception excep)
                 {
@@ -365,20 +370,82 @@ public class BrokerHeaderHandler implements SOAPHandler<SOAPMessageContext> {
      * 
      * Doing this will guaratee the freshness of message, i.e. counter replay-message attacks. 
      */
-    private String generateNonce()
+    private byte[] generateNonce()
     {
-        //TODO
-        return "";
+        byte[] result = null;
+        
+        int maximum = 4096;
+        int minimum = 1024;
+        
+        StringBuilder nonce = new StringBuilder();
+       
+        for(int index = 0; index <= 5 ; index++)
+        {
+            Random rn = new Random();
+            int n = maximum - minimum + 1;
+            int i = rn.nextInt() % n;
+            int random_num =  minimum + i;
+        
+            nonce.append(random_num);
+        }
+        
+        Date date = new Date();
+        nonce.append(date.getSeconds());
+        
+        for(int index = 0; index <= 3 ; index++)
+        {
+            Random rn = new Random();
+            int n = maximum - minimum + 1;
+            int i = rn.nextInt() % n;
+            int random_num =  minimum + i;
+        
+            nonce.append(random_num);
+        }
+        
+        nonce.append(date.getDay());
+        
+        for(int index = 0; index <= 3 ; index++)
+        {
+            Random rn = new Random();
+            int n = maximum - minimum + 1;
+            int i = rn.nextInt() % n;
+            int random_num =  minimum + i;
+        
+            nonce.append(random_num);
+        }
+        
+        nonce.append(date.getMonth());
+        nonce.append(date.getYear());
+        
+        return nonce.toString().getBytes();
     }
+    
     
     /**
      * Append nonce to an outbound message.
      * 
      * @param nonce nonce to be appended.
      */
-    private void appendNonceToOutboundMessage(String nonce)
+    private void appendNonceToOutboundMessage(SOAPMessageContext smc, byte[] nonce_bytes) throws Exception
     {
-        //TODO
+        // get SOAP envelope
+        SOAPMessage msg = smc.getMessage();
+        
+        SOAPPart msg_soap_part = msg.getSOAPPart();
+        SOAPEnvelope msg_soap_envelope = msg_soap_part.getEnvelope();
+
+        // add header
+        SOAPHeader msg_soap_header = msg_soap_envelope.getHeader();
+        if (msg_soap_header == null)
+            msg_soap_header = msg_soap_envelope.addHeader();
+
+        // add header element (name, namespace prefix, namespace)
+        Name name = msg_soap_envelope.createName("nonce", "broker-ws", "http://localhost:8091/broker-ws/endpoint");
+        SOAPHeaderElement element = msg_soap_header.addHeaderElement(name);
+
+        // add header element value
+        String nonce = printHexBinary(nonce_bytes);
+        element.addTextNode(nonce);
     }
     
     
