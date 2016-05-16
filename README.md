@@ -82,7 +82,7 @@ mvn exec:java
 [2] Construir **cliente** e executar testes
 
 ```
-cd authentication-server-cli
+cd authentication-server-ws-cli
 mvn clean install
 ```
 
